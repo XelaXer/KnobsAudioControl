@@ -1,9 +1,9 @@
 ﻿using System.Collections;
 using NAudio.CoreAudioApi;
 
-using KController;
-using KHIDManager;
-using KHIDDevice;
+using IHID.HIDManager;
+using IHID.HIDDevice;
+using Knobs.Controller;
 
 static void LoadEnvironmentVariables()
 {
@@ -22,7 +22,7 @@ LoadEnvironmentVariables();
 
 Controller Controller = new Controller();
 HIDManager HManager = new HIDManager();
-HIDDevice HDevice = HManager.LoadDefaultDevice();
+IHIDDevice HDevice = HManager.LoadDefaultDevice();
 HDevice.OpenDevice();
 HDevice.StartReading(Controller.ProcessHIDEvent);
 

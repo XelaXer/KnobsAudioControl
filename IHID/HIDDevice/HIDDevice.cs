@@ -1,16 +1,15 @@
 using HidLibrary;
 using System.Text;
 
-namespace KHIDDevice
+namespace IHID.HIDDevice
 {
-
-	class HIDDevice
+	class IHIDDevice
 	{
 		HidDevice? Device;
 		int VendorID;
 		int ProductID;
 
-		public HIDDevice(int vendorid, int productid)
+		public IHIDDevice(int vendorid, int productid)
 		{
 			VendorID = vendorid;
 			ProductID = productid;

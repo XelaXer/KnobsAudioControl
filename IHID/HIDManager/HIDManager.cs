@@ -1,9 +1,8 @@
 using HidLibrary;
-using KHIDDevice;
+using IHID.HIDDevice;
 
-namespace KHIDManager 
+namespace IHID.HIDManager 
 {
-
 	class HIDManager
 	{
 		int defaultVendorId = 0x2341;
@@ -43,9 +42,9 @@ namespace KHIDManager
 		}
 
 		// Return custom class for HIDDevice
-		public HIDDevice LoadDefaultDevice()
+		public IHIDDevice LoadDefaultDevice()
 		{
-			return new HIDDevice(defaultVendorId, defaultProductId);
+			return new IHIDDevice(defaultVendorId, defaultProductId);
 		}
 	}
 }

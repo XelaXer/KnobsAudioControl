@@ -1,32 +1,11 @@
 using System.Diagnostics;
 using System.Text;
 
-namespace KController
+namespace Knobs.Controller
 {
-	class ControllerEvent
-	{
-		private readonly string type;
-		private readonly int value1;
-		private readonly int value2;
-		private readonly int value3;
-
-		public string Type => type;
-		public int Value1 => value1;
-		public int Value2 => value2;
-		public int Value3 => value3;
-
-		public ControllerEvent(string type, int value1, int value2, int value3)
-		{
-			this.type = type;
-			this.value1 = value1;
-			this.value2 = value2;
-			this.value3 = value3;
-		}
-
-	};
-
 	class Controller
 	{
+		Dictionary<int, object> mActuators = new Dictionary<int, object>();
 
 		public Controller()
 		{
@@ -55,7 +34,8 @@ namespace KController
 
 		public void ProcessControllerEvent(ControllerEvent e)
 		{
-			Console.WriteLine($"Received Controller Event: {e.Type}, {e.Value1}, {e.Value2}, {e.Value3}");
+			Console.WriteLine($"[CONTROLLER] [EVENT] {e.Type}, {e.Value1}, {e.Value2}, {e.Value3}");
+
 		}
 	};
 }
