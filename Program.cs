@@ -54,61 +54,24 @@ while (true)
 
 
 
-
 /*
-while (true)
+var enumerator = new MMDeviceEnumerator();
+var device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Console);
+var sessionManager = device.AudioSessionManager;
+for (int i = 0; i < sessionManager.Sessions.Count; i++)
 {
-	var report = device.ReadReport();
-	if (report.Exists)
+	using (var session = sessionManager.Sessions[i])
 	{
-
-		byte[] receivedData = report.Data;
-		int val1 = BitConverter.ToInt32(receivedData, 0);
-		int val2 = BitConverter.ToInt32(receivedData, 4);
-		int val3 = BitConverter.ToInt32(receivedData, 8);
-
-		string receivedString = Encoding.ASCII.GetString(receivedData, 12, 10).TrimEnd('\0');
-
-		Console.WriteLine($"Received Integers: {val1}, {val2}, {val3}");
-		Console.WriteLine("Received String: " + receivedString);
+		Console.WriteLine($"Session {i + 1}:");
+		Console.WriteLine($"Process ID: {session.GetProcessID}");
+		Console.WriteLine($"Session ID: {session.GetSessionIdentifier}");
+		Console.WriteLine($"Session Instance ID: {session.GetSessionInstanceIdentifier}");
+		Console.WriteLine($"State: {session.State}");
+		var process = System.Diagnostics.Process.GetProcessById((int)session.GetProcessID);
+		Console.WriteLine($"Process Name: {process.ProcessName}");
+		Console.WriteLine("------------------------------");
 	}
-	System.Threading.Thread.Sleep(100);
 }
-*/
-
-/*
-
-if (device == null)
-{
-	Console.WriteLine("Device not found.");
-	return;
-}
-device.OpenDevice();
-while (true)
-{
-	var report = device.ReadReport();
-	if (report.Exists)
-	{
-		Console.WriteLine("Received: " + report.Data.Skip(1));
-		// Skip the first byte and take bytes until the first 0x00 byte (end of string)
-		var stringData = Encoding.ASCII.GetString(report.Data.Skip(1).TakeWhile(b => b != 0x00).ToArray());
-		Console.WriteLine("Received String: " + stringData);
-		byte[] receivedData = report.Data;
-        int val1 = BitConverter.ToInt32(receivedData, 0);
-        int val2 = BitConverter.ToInt32(receivedData, 4);
-        int val3 = BitConverter.ToInt32(receivedData, 8);
-
-        string receivedString = Encoding.ASCII.GetString(receivedData, 12, 10).TrimEnd('\0');
-
-        Console.WriteLine($"Received Integers: {val1}, {val2}, {val3}");
-        Console.WriteLine("Received String: " + receivedString);
-	}
-	System.Threading.Thread.Sleep(100);
-}
-device.CloseDevice();
-
-/*
-
 
 var enumerator = new MMDeviceEnumerator();
 
@@ -177,4 +140,56 @@ SimpleAudioVolume Property: Mute, Type: System.Boolean
 AudioMeterInformation Property: PeakValues, Type: NAudio.CoreAudioApi.AudioMeterInformationChannels
 AudioMeterInformation Property: HardwareSupport, Type: NAudio.CoreAudioApi.EEndpointHardwareSupport
 AudioMeterInformation Property: MasterPeakValue, Type: System.Single
+*/
+
+
+/*
+while (true)
+{
+	var report = device.ReadReport();
+	if (report.Exists)
+	{
+
+		byte[] receivedData = report.Data;
+		int val1 = BitConverter.ToInt32(receivedData, 0);
+		int val2 = BitConverter.ToInt32(receivedData, 4);
+		int val3 = BitConverter.ToInt32(receivedData, 8);
+
+		string receivedString = Encoding.ASCII.GetString(receivedData, 12, 10).TrimEnd('\0');
+
+		Console.WriteLine($"Received Integers: {val1}, {val2}, {val3}");
+		Console.WriteLine("Received String: " + receivedString);
+	}
+	System.Threading.Thread.Sleep(100);
+}
+
+if (device == null)
+{
+	Console.WriteLine("Device not found.");
+	return;
+}
+device.OpenDevice();
+while (true)
+{
+	var report = device.ReadReport();
+	if (report.Exists)
+	{
+		Console.WriteLine("Received: " + report.Data.Skip(1));
+		// Skip the first byte and take bytes until the first 0x00 byte (end of string)
+		var stringData = Encoding.ASCII.GetString(report.Data.Skip(1).TakeWhile(b => b != 0x00).ToArray());
+		Console.WriteLine("Received String: " + stringData);
+		byte[] receivedData = report.Data;
+        int val1 = BitConverter.ToInt32(receivedData, 0);
+        int val2 = BitConverter.ToInt32(receivedData, 4);
+        int val3 = BitConverter.ToInt32(receivedData, 8);
+
+        string receivedString = Encoding.ASCII.GetString(receivedData, 12, 10).TrimEnd('\0');
+
+        Console.WriteLine($"Received Integers: {val1}, {val2}, {val3}");
+        Console.WriteLine("Received String: " + receivedString);
+	}
+	System.Threading.Thread.Sleep(100);
+}
+device.CloseDevice();
+
 */

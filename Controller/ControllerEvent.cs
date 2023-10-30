@@ -1,7 +1,7 @@
 	
 namespace Knobs.Controller
 {
-	class ControllerEvent
+	public class ControllerEvent
 	{
 		private readonly string type;
 		private readonly int value1;
