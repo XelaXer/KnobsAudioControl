@@ -10,6 +10,32 @@ namespace Knobs.WindowsAudio
 	
 }
 /*
+Process Cache:
+            Dictionary<string, List<int>> processNameToProcessId = new Dictionary<string, List<int>>();
+			Dictionary<int, object> processIdToSystemProcess = new Dictionary<int, object>();
+
+			string processName = "exampleProcess";
+            int processId = 12345;
+            if (!processNameToProcessId.ContainsKey(processName))
+            {
+                processNameToProcessId[processName] = new List<int>();
+            }
+            processNameToProcessId[processName].Add(processId);
+            
+            // To iterate through items
+            foreach (var entry in processNameToProcessId)
+            {
+                string key = entry.Key;
+                foreach (var value in entry.Value)
+                {
+                    Console.WriteLine($"{key}: {value}");
+                }
+            }
+
+*/
+
+
+/*
 
 var enumerator = new MMDeviceEnumerator();
 
@@ -34,7 +60,6 @@ for (int i = 0; i < sessionManager.Sessions.Count; i++)
 		// {
 		// 	Console.WriteLine($"SimpleAudioVolume Property: {property.Name}, Type: {property.PropertyType}");
 		// }
-		/*
 		foreach (var property in session.SimpleAudioVolume.GetType().GetProperties())
 		{
 			Console.WriteLine($"SimpleAudioVolume Property: {property.Name}, Type: {property.PropertyType}");
@@ -43,7 +68,7 @@ for (int i = 0; i < sessionManager.Sessions.Count; i++)
 		{
 			Console.WriteLine($"AudioMeterInformation Property: {property.Name}, Type: {property.PropertyType}");
 		}
-		*/
+
 		Console.WriteLine("------------------------------");
 	}
 }

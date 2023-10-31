@@ -21,6 +21,10 @@ namespace Knobs.Actuator
 		void SetVolume(float volume)
 		{
 			Volume = volume;
+			foreach (var processName in ProcessNames)
+            {
+                // WindowsAudioHandler.SetVolumeByProcessId(processName, volume);
+            }
 		}
 	}
 }

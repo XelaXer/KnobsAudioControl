@@ -3,13 +3,13 @@ namespace Knobs.Actuator
 {
 	public abstract class AudioActuator : Actuator
 	{
-		List<string> processNames;
-		WindowsAudioHandler WindowsAudioHandler;
+		protected List<string> ProcessNames { get; set; }
+		protected WindowsAudioHandler WindowsAudioHandler { get; private set; }
 
 		public AudioActuator(int id, int value, int minValue, int maxValue, string physicalType, string actuatorType, List<string> processNames, WindowsAudioHandler windowsAudioHandler) 
 			: base(id, value, minValue, maxValue, physicalType, actuatorType)
 		{
-			this.processNames = processNames;
+			this.ProcessNames = processNames;
 			this.WindowsAudioHandler = windowsAudioHandler;
 		}
 	}
