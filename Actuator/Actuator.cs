@@ -1,12 +1,12 @@
 using Knobs.Controller;
-namespace Knobs.Actuator
+namespace Knobs.Actuators
 {
 	public abstract class Actuator
 	{
 		private int id;
 		private int value;
-		private int minValue;
-		private int maxValue;
+		protected int minValue;
+		protected int maxValue;
 		private string physicalType;
 		private string actuatorType;
 
@@ -25,6 +25,11 @@ namespace Knobs.Actuator
 		public void SetValue(int value)
 		{
 			this.value = value;
+		}
+
+		public static float NormalizeFloat(float value, float inMin, float inMax, float outMin, float outMax)
+		{
+			return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
 		}
 	}
 	

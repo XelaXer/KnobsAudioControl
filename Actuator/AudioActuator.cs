@@ -1,16 +1,34 @@
 using Knobs.WindowsAudio;
-namespace Knobs.Actuator
+namespace Knobs.Actuators
 {
 	public abstract class AudioActuator : Actuator
 	{
 		protected List<string> ProcessNames { get; set; }
+		protected List<int> ActiveProcessIds;
+		private DateTime TimeLastUpdatedProcessIds;
 		protected WindowsAudioHandler WindowsAudioHandler { get; private set; }
 
 		public AudioActuator(int id, int value, int minValue, int maxValue, string physicalType, string actuatorType, List<string> processNames, WindowsAudioHandler windowsAudioHandler) 
 			: base(id, value, minValue, maxValue, physicalType, actuatorType)
 		{
-			this.ProcessNames = processNames;
-			this.WindowsAudioHandler = windowsAudioHandler;
+			ProcessNames = processNames;
+			WindowsAudioHandler = windowsAudioHandler;
+			// ProcessIds = new();
+			// TimeLastUpdatedProcessIds = DateTime.UtcNow;
 		}
+
+		
+
+		/*
+		public void CacheProcessIds()
+		{
+			if (DateTime.UtcNow - TimeLastUpdatedProcessIds > TimeSpan.FromSeconds(5))
+			{
+				// ProcessIds = WindowsAudioHandler.GetProcessIdsByProcessNames(ProcessNames);
+				TimeLastUpdatedProcessIds = DateTime.Now;
+			}
+		}
+		*/
+
 	}
 }

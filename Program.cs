@@ -4,6 +4,8 @@ using NAudio.CoreAudioApi;
 using IHID.HIDManager;
 using IHID.HIDDevice;
 using Knobs.Controller;
+using Knobs.Actuators;
+using Knobs.WindowsAudio;
 
 static void LoadEnvironmentVariables()
 {
@@ -18,7 +20,16 @@ static void LoadEnvironmentVariables()
 	}
 }
 
+// TODO: Get JSON Config File
+
+// TODO: Load Actuators from JSON Config File
+
 LoadEnvironmentVariables();
+
+WindowsAudioHandler WindowsAudioHandler = new WindowsAudioHandler();
+// WindowsAudioHandler.SetVolumeByProcessName("chrome", 0.5f);
+
+Dictionary<int, Actuator> actuators = LoadActuators();
 
 Controller Controller = new Controller();
 HIDManager HManager = new HIDManager();
@@ -27,11 +38,16 @@ HDevice.OpenDevice();
 HDevice.StartReading(Controller.ProcessHIDEvent);
 
 
+VolumeControl volumeControl = new (1, 100, 0, 100, "rotary pot", "volume knob", new List<string> { "chrome", "firefox" }, new WindowsAudioHandler());
+volumeControl.ProcessEvent(new ControllerEvent("event", 1, 50, 0));
+
+// 
+// ProcessEvent
+
 while (true)
 {
 	// System.Threading.Thread.Sleep(100);
 }
-
 
 
 

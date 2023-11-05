@@ -1,13 +1,58 @@
+using NAudio.CoreAudioApi;
+using System.Collections.Generic;
+
 namespace Knobs.WindowsAudio
 {
-	public class WindowsAudioHandler
+	public struct WindowsAudioSession
 	{
-		public WindowsAudioHandler()
-		{
-		}
+		public AudioSessionControl AudioSessionControlObject;
+		public System.Diagnostics.Process SystemProcessObject;
+		public int ProcessId;
+		public string ProcessName;
+		// Can access state via: AudioSessionObject.State
 	}
 
-	
+	public class WindowsAudioHandler
+	{
+		MMDeviceEnumerator enumerator;
+		Dictionary<string, WindowsAudioSession> CachedSessions;
+		public WindowsAudioHandler()
+		{
+			enumerator = new ();
+			CachedSessions = GetAudioSessions();
+		}
+
+		public Dictionary<string, WindowsAudioSession> GetAudioSessions()
+		{
+			Dictionary<string, WindowsAudioSession> sessions = new();
+
+			MMDevice device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Console);
+			AudioSessionManager sessionManager = device.AudioSessionManager;
+			for (int i = 0; i < sessionManager.Sessions.Count; i++)
+			{
+				AudioSessionControl session = sessionManager.Sessions[i];
+				var process = System.Diagnostics.Process.GetProcessById((int)session.GetProcessID);
+
+				var wAudioSession = new WindowsAudioSession
+				{
+					AudioSessionControlObject = session,
+					SystemProcessObject = process,
+					ProcessId = (int)session.GetProcessID,
+					ProcessName = process.ProcessName
+				};
+				sessions.Add(wAudioSession.ProcessName, wAudioSession);
+			}
+			return sessions;
+		}
+
+		public void SetVolumeByProcessName(string processName, float volume)
+		{
+			if (CachedSessions.ContainsKey(processName) == false) return;
+			var session = CachedSessions[processName].AudioSessionControlObject;
+			var simpleAudioVolume = session.SimpleAudioVolume;
+			simpleAudioVolume.Volume = volume;
+		}
+	}
 }
 /*
 Process Cache:
