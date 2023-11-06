@@ -16,6 +16,7 @@ namespace Knobs.WindowsAudio
 	{
 		MMDeviceEnumerator enumerator;
 		Dictionary<string, WindowsAudioSession> CachedSessions;
+		DateTime TimeLastUpdatedSessions;
 		public WindowsAudioHandler()
 		{
 			enumerator = new ();
@@ -42,11 +43,17 @@ namespace Knobs.WindowsAudio
 				};
 				sessions.Add(wAudioSession.ProcessName, wAudioSession);
 			}
+			TimeLastUpdatedSessions = DateTime.UtcNow;
 			return sessions;
 		}
 
 		public void SetVolumeByProcessName(string processName, float volume)
 		{
+			if (DateTime.UtcNow - TimeLastUpdatedSessions > TimeSpan.FromSeconds(2))
+			{
+				Console.WriteLine("[WINDOWS AUDIO HANDLER] [CACHE] Updating process cache");
+				CachedSessions = GetAudioSessions();
+			}
 			if (CachedSessions.ContainsKey(processName) == false) return;
 			var session = CachedSessions[processName].AudioSessionControlObject;
 			var simpleAudioVolume = session.SimpleAudioVolume;

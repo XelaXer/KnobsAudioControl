@@ -1,5 +1,4 @@
 using HidLibrary;
-using System.Text;
 
 namespace IHID.HIDDevice
 {
@@ -8,6 +7,8 @@ namespace IHID.HIDDevice
 		HidDevice? Device;
 		int VendorID;
 		int ProductID;
+
+		private CancellationTokenSource? _cancellationTokenSource;
 
 		public IHIDDevice(int vendorid, int productid)
 		{
@@ -34,12 +35,15 @@ namespace IHID.HIDDevice
 
 		public void StartReading(Action<byte[]> callback)
 		{
-			Task.Run(() => ReadLoop(callback));
+			_cancellationTokenSource = new CancellationTokenSource();
+			var cancellationToken = _cancellationTokenSource.Token;
+
+			Task.Run(() => ReadLoop(callback, cancellationToken), cancellationToken);
 		}
 
-		private void ReadLoop(Action<byte[]> callback)
+		private void ReadLoop(Action<byte[]> callback, CancellationToken token)
 		{
-			while (true)
+			while (!token.IsCancellationRequested)
 			{
 				if (Device == null) continue;
 				var report = Device.ReadReport();
@@ -48,62 +52,19 @@ namespace IHID.HIDDevice
 					byte[] receivedData = report.Data;
 					callback(receivedData);
 				}
+				if (token.IsCancellationRequested) break;
 				// Thread.Sleep(5);
+			}
+		}
+
+		public void StopReading()
+		{
+			if (_cancellationTokenSource != null)
+			{
+				_cancellationTokenSource.Cancel();
+				_cancellationTokenSource.Dispose();
+				_cancellationTokenSource = null; // reset the token source for future use if needed
 			}
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-	while (true)
-	{
-		if (Device == null) continue;
-		var report = Device.ReadReport();
-		if (report.Exists)
-		{
-			byte[] receivedData = report.Data;
-			string type = Encoding.ASCII.GetString(receivedData, 0, 10).TrimEnd('\0');
-			int value1 = BitConverter.ToInt32(receivedData, 10);
-			int value2 = BitConverter.ToInt32(receivedData, 14);
-			int value3 = BitConverter.ToInt32(receivedData, 18);
-
-			SHIDEvent hidevent = new SHIDEvent(type, value1, value2, value3);
-			callback(hidevent);
-		}
-		// Thread.Sleep(5);
-	}
-
-	struct SHIDEvent
-	{
-		readonly string type;
-		readonly int value1;
-		readonly int value2;
-		readonly int value3;
-
-		public SHIDEvent(string type, int value1, int value2, int value3)
-		{
-			this.type = type;
-			this.value1 = value1;
-			this.value2 = value2;
-			this.value3 = value3;
-		}
-	};
-*/
