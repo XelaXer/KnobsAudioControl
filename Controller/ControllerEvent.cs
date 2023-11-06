@@ -1,5 +1,4 @@
-	
-namespace Knobs.Controller
+	namespace Knobs.Controller
 {
 	public class ControllerEvent
 	{

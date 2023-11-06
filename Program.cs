@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Text.Json;
 using NAudio.CoreAudioApi;
 
 using IHID.HIDManager;
@@ -20,16 +21,49 @@ static void LoadEnvironmentVariables()
 	}
 }
 
+LoadEnvironmentVariables();
+
 // TODO: Get JSON Config File
+string fileName = "config.json";
+
+if (!File.Exists(fileName))
+{
+	Console.WriteLine("The configuration file does not exist.");
+	return;
+}
+
+string jsonString = File.ReadAllText(fileName);
+try
+{
+	var options = new JsonSerializerOptions
+	{
+		PropertyNameCaseInsensitive = true // Use this option to ignore property name case
+	};
+
+	ControllerConfiguration configuration = JsonSerializer.Deserialize<ControllerConfiguration>(jsonString, options);
+
+	// Use the configuration object as needed
+	Console.WriteLine("Controller Configuration successfully deserialized.");
+}
+catch (JsonException ex)
+{
+	Console.WriteLine($"An error occurred during deserialization: {ex.Message}");
+}
+catch (Exception ex)
+{
+	Console.WriteLine($"An unexpected error occurred: {ex.Message}");
+}
+
 
 // TODO: Load Actuators from JSON Config File
 
-LoadEnvironmentVariables();
+// TODO: 
+
+
+
 
 WindowsAudioHandler WindowsAudioHandler = new WindowsAudioHandler();
 // WindowsAudioHandler.SetVolumeByProcessName("chrome", 0.5f);
-
-Dictionary<int, Actuator> actuators = LoadActuators();
 
 Controller Controller = new Controller();
 HIDManager HManager = new HIDManager();
@@ -38,7 +72,7 @@ HDevice.OpenDevice();
 HDevice.StartReading(Controller.ProcessHIDEvent);
 
 
-VolumeControl volumeControl = new (1, 100, 0, 100, "rotary pot", "volume knob", new List<string> { "chrome", "firefox" }, new WindowsAudioHandler());
+VolumeControl volumeControl = new(1, 100, 0, 100, "rotary pot", "volume knob", new List<string> { "chrome", "firefox" }, new WindowsAudioHandler());
 volumeControl.ProcessEvent(new ControllerEvent("event", 1, 50, 0));
 
 // 
@@ -49,163 +83,3 @@ while (true)
 	// System.Threading.Thread.Sleep(100);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-var enumerator = new MMDeviceEnumerator();
-var device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Console);
-var sessionManager = device.AudioSessionManager;
-for (int i = 0; i < sessionManager.Sessions.Count; i++)
-{
-	using (var session = sessionManager.Sessions[i])
-	{
-		Console.WriteLine($"Session {i + 1}:");
-		Console.WriteLine($"Process ID: {session.GetProcessID}");
-		Console.WriteLine($"Session ID: {session.GetSessionIdentifier}");
-		Console.WriteLine($"Session Instance ID: {session.GetSessionInstanceIdentifier}");
-		Console.WriteLine($"State: {session.State}");
-		var process = System.Diagnostics.Process.GetProcessById((int)session.GetProcessID);
-		Console.WriteLine($"Process Name: {process.ProcessName}");
-		Console.WriteLine("------------------------------");
-	}
-}
-
-var enumerator = new MMDeviceEnumerator();
-
-// Get the default playback device
-var device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Console);
-
-// Now let's enumerate over the audio sessions
-var sessionManager = device.AudioSessionManager;
-for (int i = 0; i < sessionManager.Sessions.Count; i++)
-{
-	using (var session = sessionManager.Sessions[i])
-	{
-		// foreach (var property in session.GetType().GetProperties())
-		// {
-		// 	Console.WriteLine($"Property: {property.Name}, Type: {property.PropertyType}");
-		// }
-		Console.WriteLine($"Session {i + 1}:");
-		Console.WriteLine($"  Display Name: {session.DisplayName}");
-		Console.WriteLine($"  State: {session.State}");
-		
-		foreach (var property in session.SimpleAudioVolume.GetType().GetProperties())
-		{
-			Console.WriteLine($"SimpleAudioVolume Property: {property.Name}, Type: {property.PropertyType}");
-		}
-		foreach (var property in session.AudioMeterInformation.GetType().GetProperties())
-		{
-			Console.WriteLine($"AudioMeterInformation Property: {property.Name}, Type: {property.PropertyType}");
-		}
-
-		// SimpleAudioVolume.Volume
-		// SimpleAudioVolume.Mute
-
-		
-		Console.WriteLine("------------------------------");
-	}
-}
-
-void printPropertyInfo(string name, object obj)
-{
-	Console.WriteLine($"------------ {name} Info ------------------");
-	foreach (var property in obj.GetType().GetProperties())
-	{
-		Console.WriteLine($"Property: {property.Name}, Type: {property.PropertyType}");
-	}
-	Console.WriteLine("-------------------------------------------");
-}
-*/
-
-
-
-/*
-Property: AudioMeterInformation, Type: NAudio.CoreAudioApi.AudioMeterInformation
-Property: SimpleAudioVolume, Type: NAudio.CoreAudioApi.SimpleAudioVolume
-Property: State, Type: NAudio.CoreAudioApi.Interfaces.AudioSessionState
-Property: DisplayName, Type: System.String
-Property: IconPath, Type: System.String
-Property: GetSessionIdentifier, Type: System.String
-Property: GetSessionInstanceIdentifier, Type: System.String
-Property: GetProcessID, Type: System.UInt32
-Property: IsSystemSoundsSession, Type: System.Boolean
-*/
-
-/*
-SimpleAudioVolume Property: Volume, Type: System.Single
-SimpleAudioVolume Property: Mute, Type: System.Boolean
-AudioMeterInformation Property: PeakValues, Type: NAudio.CoreAudioApi.AudioMeterInformationChannels
-AudioMeterInformation Property: HardwareSupport, Type: NAudio.CoreAudioApi.EEndpointHardwareSupport
-AudioMeterInformation Property: MasterPeakValue, Type: System.Single
-*/
-
-
-/*
-while (true)
-{
-	var report = device.ReadReport();
-	if (report.Exists)
-	{
-
-		byte[] receivedData = report.Data;
-		int val1 = BitConverter.ToInt32(receivedData, 0);
-		int val2 = BitConverter.ToInt32(receivedData, 4);
-		int val3 = BitConverter.ToInt32(receivedData, 8);
-
-		string receivedString = Encoding.ASCII.GetString(receivedData, 12, 10).TrimEnd('\0');
-
-		Console.WriteLine($"Received Integers: {val1}, {val2}, {val3}");
-		Console.WriteLine("Received String: " + receivedString);
-	}
-	System.Threading.Thread.Sleep(100);
-}
-
-if (device == null)
-{
-	Console.WriteLine("Device not found.");
-	return;
-}
-device.OpenDevice();
-while (true)
-{
-	var report = device.ReadReport();
-	if (report.Exists)
-	{
-		Console.WriteLine("Received: " + report.Data.Skip(1));
-		// Skip the first byte and take bytes until the first 0x00 byte (end of string)
-		var stringData = Encoding.ASCII.GetString(report.Data.Skip(1).TakeWhile(b => b != 0x00).ToArray());
-		Console.WriteLine("Received String: " + stringData);
-		byte[] receivedData = report.Data;
-        int val1 = BitConverter.ToInt32(receivedData, 0);
-        int val2 = BitConverter.ToInt32(receivedData, 4);
-        int val3 = BitConverter.ToInt32(receivedData, 8);
-
-        string receivedString = Encoding.ASCII.GetString(receivedData, 12, 10).TrimEnd('\0');
-
-        Console.WriteLine($"Received Integers: {val1}, {val2}, {val3}");
-        Console.WriteLine("Received String: " + receivedString);
-	}
-	System.Threading.Thread.Sleep(100);
-}
-device.CloseDevice();
-
-*/
