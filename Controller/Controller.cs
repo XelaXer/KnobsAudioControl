@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using Knobs.WindowsAudio;
 using Knobs.Actuators;
 
 namespace Knobs.Controller
@@ -7,10 +8,47 @@ namespace Knobs.Controller
 	class Controller
 	{
 		private Dictionary<int, Actuator> MActuators;
+		private WindowsAudioHandler WAudioHandler;
 
-		public Controller(Dictionary<int, Actuator> actuators)
+		public Controller(ControllerConfiguration ctrlCfg, WindowsAudioHandler audioHandler)
 		{
-			MActuators = actuators;
+			WAudioHandler = audioHandler;
+			MActuators = new Dictionary<int, Actuator>();
+
+			// Create actuators
+			foreach (ActuatorConfig actuatorCfg in ctrlCfg.Actuators)
+			{
+				Console.WriteLine($"[CONTROLLER] [INFO] Creating actuator with ID {actuatorCfg.Id} and type {actuatorCfg.ActuatorType}");
+
+				Actuator actuator = null;
+				switch (actuatorCfg.ActuatorType)
+				{
+					case "volume_knob":
+						// Get process group
+						List<string> processNames = new();
+						foreach (ProcessGroup processGroup in ctrlCfg.ProcessGroups)
+						{
+							if (processGroup.GroupName == actuatorCfg.ActuatorTypeSettings.ProcessGroup)
+							{
+								foreach (Process process in processGroup.Processes)
+								{
+									processNames.Add(process.ProcessName);
+								}
+							}
+						}
+						// Create Actuator
+						actuator = new VolumeControl(actuatorCfg.Id, actuatorCfg.MaxValue, actuatorCfg.MinValue, actuatorCfg.MaxValue,  actuatorCfg.PhysicalType, 
+							actuatorCfg.ActuatorType, processNames, WAudioHandler);
+						break;
+					default:
+						Console.WriteLine($"[CONTROLLER] [ERROR] Actuator type {actuatorCfg.ActuatorType} is not supported.");
+						break;
+				}
+				if (actuator != null)
+				{
+					MActuators.Add(actuatorCfg.Id, actuator);
+				}
+			}
 		}
 
 		public void ProcessHIDEvent(byte[] receivedData)

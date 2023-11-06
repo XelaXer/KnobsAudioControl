@@ -24,7 +24,7 @@ static void LoadEnvironmentVariables()
 LoadEnvironmentVariables();
 
 // TODO: Get JSON Config File
-string fileName = "config.json";
+string fileName = "C:/Users/alexa/Desktop/test_controller_config_v2.json";
 
 if (!File.Exists(fileName))
 {
@@ -32,6 +32,7 @@ if (!File.Exists(fileName))
 	return;
 }
 
+ControllerConfiguration configuration = null;
 string jsonString = File.ReadAllText(fileName);
 try
 {
@@ -40,7 +41,16 @@ try
 		PropertyNameCaseInsensitive = true // Use this option to ignore property name case
 	};
 
-	ControllerConfiguration configuration = JsonSerializer.Deserialize<ControllerConfiguration>(jsonString, options);
+	configuration = JsonSerializer.Deserialize<ControllerConfiguration>(jsonString, options);
+
+	if (configuration?.Actuators != null)
+	{
+		foreach (var actuator in configuration.Actuators)
+		{
+			// Just for demonstration, print out the actuator type to verify it's being read
+			Console.WriteLine($"Actuator ID: {actuator.Id}, Actuator Type: {actuator.ActuatorType}");
+		}
+	}
 
 	// Use the configuration object as needed
 	Console.WriteLine("Controller Configuration successfully deserialized.");
@@ -54,32 +64,21 @@ catch (Exception ex)
 	Console.WriteLine($"An unexpected error occurred: {ex.Message}");
 }
 
-
-// TODO: Load Actuators from JSON Config File
-
-// TODO: 
-
-
-
-
 WindowsAudioHandler WindowsAudioHandler = new WindowsAudioHandler();
-// WindowsAudioHandler.SetVolumeByProcessName("chrome", 0.5f);
 
-Controller Controller = new Controller();
+
+Controller Controller = new Controller(configuration, WindowsAudioHandler);
 HIDManager HManager = new HIDManager();
 IHIDDevice HDevice = HManager.LoadDefaultDevice();
 HDevice.OpenDevice();
 HDevice.StartReading(Controller.ProcessHIDEvent);
-
-
-VolumeControl volumeControl = new(1, 100, 0, 100, "rotary pot", "volume knob", new List<string> { "chrome", "firefox" }, new WindowsAudioHandler());
-volumeControl.ProcessEvent(new ControllerEvent("event", 1, 50, 0));
-
-// 
-// ProcessEvent
+Controller.ProcessControllerEvent(new ControllerEvent("event", 2, 75, 0));
 
 while (true)
 {
 	// System.Threading.Thread.Sleep(100);
 }
 
+// WindowsAudioHandler.SetVolumeByProcessName("chrome", 0.5f);
+// VolumeControl volumeControl = new(1, 100, 0, 100, "rotary pot", "volume knob", new List<string> { "chrome", "firefox" }, new WindowsAudioHandler());
+// volumeControl.ProcessEvent(new ControllerEvent("event", 1, 50, 0));
