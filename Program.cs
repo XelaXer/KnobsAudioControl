@@ -69,6 +69,9 @@ class Program
 		}
 	}
 
+	// Poll for device on separate thread
+	// StopReading()
+
 	void CreateController(ControllerConfiguration ctrlCfg, WindowsAudioHandler wAudioHandler)
 	{
 
