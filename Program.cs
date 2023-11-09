@@ -12,6 +12,10 @@ class Program
 	{
 		LoadEnvironmentVariables();
 
+		WindowsNamedPipeHandler _pipeHandler;
+		_pipeHandler = new WindowsNamedPipeHandler("MyPipeName");
+		_pipeHandler.AddFunction("print", PrintMessageFunction);
+
 		// TODO: Get JSON Config File
 		string fileName = "C:/Users/alexa/Desktop/test_controller_config_v2.json";
 
@@ -136,5 +140,11 @@ class Program
 				Environment.SetEnvironmentVariable(parts[0], parts[1], EnvironmentVariableTarget.Process);
 			}
 		}
+	}
+
+	static async Task PrintMessageFunction(string message)
+	{
+		Console.WriteLine(message);
+		await Task.CompletedTask; // To keep it awaitable in case you need to do async operations in the future.
 	}
 }
