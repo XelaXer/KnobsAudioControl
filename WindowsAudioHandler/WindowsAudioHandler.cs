@@ -9,39 +9,52 @@ namespace Knobs.WindowsAudio
 		public System.Diagnostics.Process SystemProcessObject;
 		public int ProcessId;
 		public string ProcessName;
-		// Can access state via: AudioSessionObject.State
+
+		public void Dispose()
+		{
+			if (AudioSessionControlObject != null)
+			{
+				AudioSessionControlObject.Dispose();
+			}
+		}
 	}
 
-	public class WindowsAudioHandler
+	public class WindowsAudioHandler : IDisposable
 	{
 		MMDeviceEnumerator enumerator;
-		Dictionary<string, WindowsAudioSession> CachedSessions;
+		Dictionary<string, List<WindowsAudioSession>> CachedSessions;
 		DateTime TimeLastUpdatedSessions;
+		private bool disposed = false;
+
 		public WindowsAudioHandler()
 		{
-			enumerator = new ();
+			enumerator = new();
 			CachedSessions = GetAudioSessions();
 		}
 
-		public Dictionary<string, WindowsAudioSession> GetAudioSessions()
+		public Dictionary<string, List<WindowsAudioSession>> GetAudioSessions()
 		{
-			Dictionary<string, WindowsAudioSession> sessions = new();
+			Dictionary<string, List<WindowsAudioSession>> sessions = new();
 
-			MMDevice device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Console);
-			AudioSessionManager sessionManager = device.AudioSessionManager;
-			for (int i = 0; i < sessionManager.Sessions.Count; i++)
+			using (var device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Console))
 			{
-				AudioSessionControl session = sessionManager.Sessions[i];
-				var process = System.Diagnostics.Process.GetProcessById((int)session.GetProcessID);
+				AudioSessionManager sessionManager = device.AudioSessionManager;
 
-				var wAudioSession = new WindowsAudioSession
+				for (int i = 0; i < sessionManager.Sessions.Count; i++)
 				{
-					AudioSessionControlObject = session,
-					SystemProcessObject = process,
-					ProcessId = (int)session.GetProcessID,
-					ProcessName = process.ProcessName
-				};
-				sessions.Add(wAudioSession.ProcessName, wAudioSession);
+					AudioSessionControl session = sessionManager.Sessions[i];
+					var process = System.Diagnostics.Process.GetProcessById((int)session.GetProcessID);
+					Console.WriteLine($"Process Name: {process.ProcessName}");
+					var wAudioSession = new WindowsAudioSession
+					{
+						AudioSessionControlObject = session,
+						SystemProcessObject = process,
+						ProcessId = (int)session.GetProcessID,
+						ProcessName = process.ProcessName
+					};
+					if (sessions.ContainsKey(wAudioSession.ProcessName) == false) sessions.Add(wAudioSession.ProcessName, new List<WindowsAudioSession>());
+					sessions[wAudioSession.ProcessName].Add(wAudioSession);
+				}
 			}
 			TimeLastUpdatedSessions = DateTime.UtcNow;
 			return sessions;
@@ -55,9 +68,50 @@ namespace Knobs.WindowsAudio
 				CachedSessions = GetAudioSessions();
 			}
 			if (CachedSessions.ContainsKey(processName) == false) return;
-			var session = CachedSessions[processName].AudioSessionControlObject;
-			var simpleAudioVolume = session.SimpleAudioVolume;
-			simpleAudioVolume.Volume = volume;
+			for (int i = 0; i < CachedSessions[processName].Count; i++)
+			{
+				var session = CachedSessions[processName][i].AudioSessionControlObject;
+				var simpleAudioVolume = session.SimpleAudioVolume;
+				simpleAudioVolume.Volume = volume;
+			}
+			// var session = CachedSessions[processName].AudioSessionControlObject;
+			// var simpleAudioVolume = session.SimpleAudioVolume;
+			// simpleAudioVolume.Volume = volume;
+		}
+		public void Dispose() // Public implementation of Dispose pattern callable by consumers
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this); // Suppress finalization
+		}
+
+		protected virtual void Dispose(bool disposing) // Protected implementation of Dispose pattern
+		{
+			if (!disposed)
+			{
+				if (disposing)
+				{
+					// Dispose managed state (managed objects)
+					// Dispose all AudioSessionControlObjects in the cache
+					foreach (var sessionList in CachedSessions.Values)
+					{
+						foreach (var session in sessionList)
+						{
+							session.Dispose(); // This will call Dispose on WindowsAudioSession struct, make sure all disposables in it are handled
+						}
+					}
+					CachedSessions.Clear();
+				}
+
+				// Free unmanaged resources (unmanaged objects) and override finalizer
+				// Set large fields to null
+
+				disposed = true;
+			}
+		}
+
+		~WindowsAudioHandler() // Finalizer
+		{
+			Dispose(false);
 		}
 	}
 }
