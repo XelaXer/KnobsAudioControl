@@ -48,9 +48,18 @@ class Program
 		WindowsAudioHandler = new WindowsAudioHandler();
 		Controller = new Controller(configuration, WindowsAudioHandler);
 		HManager = new HIDManager();
+
+		/*
 		HDevice = HManager.LoadDefaultDevice();
 		HDevice.OpenDevice();
 		HDevice.StartReading(Controller.ProcessHIDEvent);
+		*/
+		InitializeHIDDevice();
+
+		// Start a new thread to poll the HID device
+		Thread pollingThread = new Thread(new ThreadStart(PollHIDDevice));
+		pollingThread.IsBackground = true; // Set as background thread
+		pollingThread.Start();
 
 		WindowsNamedPipeHandler _pipeHandler;
 		_pipeHandler = new WindowsNamedPipeHandler("MyNamedPipe");
@@ -158,6 +167,82 @@ class Program
 		// CloseDevice
 
 		// UpdateController(newConfig);
+	}
+
+	private void PollHIDDevice()
+	{
+		while (true)
+		{
+			Console.WriteLine("Polling HID Device...");
+			if (!IsDeviceConnected())
+			{
+				Console.WriteLine("HID Device is not connected or has been disconnected.");
+				TryReconnectDevice();
+			}
+			Thread.Sleep(1000);
+		}
+	}
+
+	private bool IsDeviceConnected()
+	{
+		return HDevice != null && HDevice.IsConnected() && HDevice.IsDeviceOpen();
+	}
+
+	private void HandleDeviceDisconnection()
+	{
+		if (HDevice != null)
+		{
+			Console.WriteLine("[MAIN] Closing HID Device...");
+			HDevice.StopReading();
+			HDevice.CloseDevice();
+			HDevice = null;
+		}
+	}
+
+	private void InitializeHIDDevice()
+	{
+		HDevice = HManager.LoadDefaultDevice();
+		if (HDevice != null)
+		{
+			HDevice.OpenDevice();
+			if (HDevice.IsDeviceOpen())
+			{
+				HDevice.StartReading(Controller.ProcessHIDEvent);
+			}
+			else
+			{
+				Console.WriteLine("Failed to open initial HID Device. Waiting for connection...");
+				HDevice = null; // Ensure HDevice is null if not open
+			}
+		}
+		else
+		{
+			Console.WriteLine("Initial HID Device not found. Waiting for connection...");
+			TryReconnectDevice();
+		}
+	}
+
+	private void TryReconnectDevice()
+	{
+		while (!IsDeviceConnected())
+		{
+			Console.WriteLine("Attempting to reconnect HID Device...");
+			HDevice = HManager.LoadDefaultDevice();
+
+			if (HDevice != null)
+			{
+				HDevice.OpenDevice();
+				if (HDevice.IsDeviceOpen())
+				{
+					Console.WriteLine("HID Device reconnected.");
+					HDevice.StartReading(Controller.ProcessHIDEvent);
+					break;
+				}
+			}
+
+			Thread.Sleep(2000);
+			HDevice = null;
+		}
 	}
 
 	static void LoadEnvironmentVariables()

@@ -36,7 +36,6 @@ void setup() {
   actuatorMap[0](1, 0);
   actuatorMap[1](2, 0);
   actuatorMap[2](3, 0);
-  Serial.begin(115200);
 }
 
 void loop() {

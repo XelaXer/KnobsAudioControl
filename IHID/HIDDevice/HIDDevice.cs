@@ -31,6 +31,7 @@ namespace IHID.HIDDevice
 		public void CloseDevice()
 		{
 			Device?.CloseDevice();
+			Device?.Dispose();
 		}
 
 		public void StartReading(Action<byte[]> callback)
@@ -41,11 +42,27 @@ namespace IHID.HIDDevice
 			Task.Run(() => ReadLoop(callback, cancellationToken), cancellationToken);
 		}
 
+		public bool IsDeviceOpen()
+		{
+			return Device != null && Device.IsOpen;
+		}
+
+		public bool IsConnected()
+		{
+			return Device != null && Device.IsConnected;
+		}
+
 		private void ReadLoop(Action<byte[]> callback, CancellationToken token)
 		{
 			while (!token.IsCancellationRequested)
 			{
 				if (Device == null) continue;
+				if (!Device.IsConnected)
+				{
+					Console.WriteLine("[HID DEVICE] Device disconnected.");
+					StopReading();
+					break;
+				}
 				var report = Device.ReadReport();
 				if (report.Exists)
 				{
