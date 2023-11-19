@@ -4,8 +4,7 @@ namespace Knobs.Actuators
 	public abstract class AudioActuator : Actuator
 	{
 		protected List<string> ProcessNames { get; set; }
-		protected List<int> ActiveProcessIds;
-		private DateTime TimeLastUpdatedProcessIds;
+		protected List<int>? ActiveProcessIds;
 		protected WindowsAudioHandler WindowsAudioHandler { get; private set; }
 
 		public AudioActuator(int id, int value, int minValue, int maxValue, string physicalType, string actuatorType, List<string> processNames, WindowsAudioHandler windowsAudioHandler) 
@@ -13,22 +12,6 @@ namespace Knobs.Actuators
 		{
 			ProcessNames = processNames;
 			WindowsAudioHandler = windowsAudioHandler;
-			// ProcessIds = new();
-			// TimeLastUpdatedProcessIds = DateTime.UtcNow;
 		}
-
-		
-
-		/*
-		public void CacheProcessIds()
-		{
-			if (DateTime.UtcNow - TimeLastUpdatedProcessIds > TimeSpan.FromSeconds(5))
-			{
-				// ProcessIds = WindowsAudioHandler.GetProcessIdsByProcessNames(ProcessNames);
-				TimeLastUpdatedProcessIds = DateTime.Now;
-			}
-		}
-		*/
-
 	}
 }

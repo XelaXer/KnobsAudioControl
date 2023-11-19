@@ -6,48 +6,97 @@ using Knobs.WindowsAudio;
 
 class Program
 {
+	const string CONFIG_DIRECTORY = "C:/Users/alexa/Desktop/ControllerConfig";
 	public delegate void ConfigurationChangedCallback(ControllerConfiguration newConfig);
+
+	public WindowsAudioHandler? WindowsAudioHandler;
+	public Controller? Controller;
+	HIDManager HManager;
+	IHIDDevice? HDevice;
 
 	static void Main()
 	{
+		Program program = new Program();
+		program.Run();
+	}
+
+	// Poll for device on separate thread
+	// StopReading()
+	public void Run()
+	{
 		LoadEnvironmentVariables();
+
+		/*
+		TODO HERE:
+			Logic should be
+				Check file
+					If no file, sleep thread
+				Parse file
+					If JSON parse fails, sleep thread
+				Return configuration object
+		*/
+		string fileName = "test_controller_config_v2.json";
+		string filePath = Path.Combine(CONFIG_DIRECTORY, fileName);
+		ControllerConfiguration? configuration = PollAndParseConfigurationFile(filePath);
+		if (configuration == null)
+		{
+			Console.WriteLine("Failed to load controller configuration. Exiting...");
+			return;
+		}
+		CreateConfigurationFileWatcher(filePath, ReloadController);
+
+		WindowsAudioHandler = new WindowsAudioHandler();
+		Controller = new Controller(configuration, WindowsAudioHandler);
+		HManager = new HIDManager();
+		HDevice = HManager.LoadDefaultDevice();
+		HDevice.OpenDevice();
+		HDevice.StartReading(Controller.ProcessHIDEvent);
 
 		WindowsNamedPipeHandler _pipeHandler;
 		_pipeHandler = new WindowsNamedPipeHandler("MyNamedPipe");
 		_pipeHandler.AddFunction("get-current-audio-session-programs", PrintMessageFunction);
 		_pipeHandler.StartReadLoop();
 
-		// TODO: Get JSON Config File
-		string fileName = "C:/Users/alexa/Desktop/test_controller_config_v2.json";
-
-		if (!File.Exists(fileName))
+		while (true)
 		{
-			Console.WriteLine("The configuration file does not exist.");
-			return;
+			// System.Threading.Thread.Sleep(100);
+		}
+	}
+
+	static public ControllerConfiguration? PollAndParseConfigurationFile(string filePath)
+	{
+		while (!File.Exists(filePath))
+		{
+			Console.WriteLine($"Configuration file not found at {filePath}. Waiting for file to be created...");
+			Thread.Sleep(1000);
 		}
 
-		ControllerConfiguration configuration = null;
-		string jsonString = File.ReadAllText(fileName);
+		string fileContents = File.ReadAllText(filePath);
+		ControllerConfiguration? configuration = ParseControllerConfiguration(fileContents);
+		return configuration;
+	}
+
+	static ControllerConfiguration? ParseControllerConfiguration(string fileContents)
+	{
 		try
 		{
 			var options = new JsonSerializerOptions
 			{
-				PropertyNameCaseInsensitive = true // Use this option to ignore property name case
+				PropertyNameCaseInsensitive = true
 			};
 
-			configuration = JsonSerializer.Deserialize<ControllerConfiguration>(jsonString, options);
+			ControllerConfiguration? configuration = JsonSerializer.Deserialize<ControllerConfiguration>(fileContents, options);
 
 			if (configuration?.Actuators != null)
 			{
 				foreach (var actuator in configuration.Actuators)
 				{
-					// Just for demonstration, print out the actuator type to verify it's being read
 					Console.WriteLine($"Actuator ID: {actuator.Id}, Actuator Type: {actuator.ActuatorType}");
 				}
 			}
 
-			// Use the configuration object as needed
 			Console.WriteLine("Controller Configuration successfully deserialized.");
+			return configuration;
 		}
 		catch (JsonException ex)
 		{
@@ -57,29 +106,7 @@ class Program
 		{
 			Console.WriteLine($"An unexpected error occurred: {ex.Message}");
 		}
-
-		WindowsAudioHandler WindowsAudioHandler = new WindowsAudioHandler();
-
-
-		Controller Controller = new Controller(configuration, WindowsAudioHandler);
-		HIDManager HManager = new HIDManager();
-		IHIDDevice HDevice = HManager.LoadDefaultDevice();
-		HDevice.OpenDevice();
-		HDevice.StartReading(Controller.ProcessHIDEvent);
-		Controller.ProcessControllerEvent(new ControllerEvent("event", 2, 75, 0));
-
-		while (true)
-		{
-			// System.Threading.Thread.Sleep(100);
-		}
-	}
-
-	// Poll for device on separate thread
-	// StopReading()
-
-	void CreateController(ControllerConfiguration ctrlCfg, WindowsAudioHandler wAudioHandler)
-	{
-
+		return null;
 	}
 
 	static void CreateConfigurationFileWatcher(string path, ConfigurationChangedCallback callback)
@@ -87,7 +114,7 @@ class Program
 		FileSystemWatcher watcher = new FileSystemWatcher(Path.GetDirectoryName(path))
 		{
 			Filter = Path.GetFileName(path),
-			NotifyFilter = NotifyFilters.LastWrite // Watch for changes in last write time
+			NotifyFilter = NotifyFilters.LastWrite
 		};
 
 		// Event handler for the Changed event
@@ -98,15 +125,9 @@ class Program
 				Console.WriteLine($"Change detected in configuration file: {e.FullPath}");
 				try
 				{
-					// Read the new JSON config file
-					string newJsonString = File.ReadAllText(e.FullPath);
-					var newConfig = JsonSerializer.Deserialize<ControllerConfiguration>(newJsonString, new JsonSerializerOptions
-					{
-						PropertyNameCaseInsensitive = true
-					});
-
-					// Invoke the callback method
-					callback?.Invoke(newConfig);
+					string fileContents = File.ReadAllText(e.FullPath);
+					ControllerConfiguration? configuration = ParseControllerConfiguration(fileContents);
+					callback?.Invoke(configuration);
 				}
 				catch (JsonException jsonEx)
 				{
@@ -123,11 +144,20 @@ class Program
 		watcher.EnableRaisingEvents = true;
 	}
 
-	static void LoadController(ControllerConfiguration newConfig)
+	void ReloadController(ControllerConfiguration cfg)
 	{
-		Console.WriteLine("New controller configuration loaded.");
+		// Controller = null;\
+		if (Controller != null)
+		{
+			Controller.Dispose();
+		}
+		Controller = new Controller(cfg, WindowsAudioHandler);
+		HDevice.StopReading();
+		// HDevice.OpenDevice();
+		HDevice.StartReading(Controller.ProcessHIDEvent);
+		// CloseDevice
 
-		// UpdateController(newConfig); // This is a placeholder for the actual update logic
+		// UpdateController(newConfig);
 	}
 
 	static void LoadEnvironmentVariables()
@@ -148,6 +178,6 @@ class Program
 		Console.WriteLine(message);
 		// await Task.CompletedTask; // To keep it awaitable in case you need to do async operations in the future.
 		string response = "Response to message received"; // Replace with actual response generation logic
-    	return Task.FromResult(response); // Wrap the response in a Task and return it
+		return Task.FromResult(response); // Wrap the response in a Task and return it
 	}
 }

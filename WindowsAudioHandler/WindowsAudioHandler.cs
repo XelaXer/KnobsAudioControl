@@ -52,7 +52,10 @@ namespace Knobs.WindowsAudio
 						ProcessId = (int)session.GetProcessID,
 						ProcessName = process.ProcessName
 					};
-					if (sessions.ContainsKey(wAudioSession.ProcessName) == false) sessions.Add(wAudioSession.ProcessName, new List<WindowsAudioSession>());
+					if (sessions.ContainsKey(wAudioSession.ProcessName) == false) 
+					{
+						sessions.Add(wAudioSession.ProcessName, new List<WindowsAudioSession>());
+					}
 					sessions[wAudioSession.ProcessName].Add(wAudioSession);
 				}
 			}
@@ -78,14 +81,18 @@ namespace Knobs.WindowsAudio
 			// var simpleAudioVolume = session.SimpleAudioVolume;
 			// simpleAudioVolume.Volume = volume;
 		}
-		public void Dispose() // Public implementation of Dispose pattern callable by consumers
+
+		// TODO: AN: Cleanup and pick method
+		public void Dispose()
 		{
+			Console.WriteLine("[WINDOWS AUDIO HANDLER] [INFO] Starting Disposing WindowsAudioHandler");
 			Dispose(true);
-			GC.SuppressFinalize(this); // Suppress finalization
+			GC.SuppressFinalize(this);
 		}
 
-		protected virtual void Dispose(bool disposing) // Protected implementation of Dispose pattern
+		protected virtual void Dispose(bool disposing)
 		{
+			Console.WriteLine("[WINDOWS AUDIO HANDLER] [INFO] Disposing WindowsAudioHandler");
 			if (!disposed)
 			{
 				if (disposing)
@@ -111,6 +118,7 @@ namespace Knobs.WindowsAudio
 
 		~WindowsAudioHandler() // Finalizer
 		{
+			Console.WriteLine("[WINDOWS AUDIO HANDLER] [INFO] Destructing.");
 			Dispose(false);
 		}
 	}

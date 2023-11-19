@@ -5,10 +5,11 @@ using Knobs.Actuators;
 
 namespace Knobs.Controller
 {
-	class Controller
+	class Controller : IDisposable
 	{
 		private Dictionary<int, Actuator> MActuators;
 		private WindowsAudioHandler WAudioHandler;
+		private bool disposed = false;
 
 		public Controller(ControllerConfiguration ctrlCfg, WindowsAudioHandler audioHandler)
 		{
@@ -28,17 +29,24 @@ namespace Knobs.Controller
 						List<string> processNames = new();
 						foreach (ProcessGroup processGroup in ctrlCfg.ProcessGroups)
 						{
-							if (processGroup.GroupName == actuatorCfg.ActuatorTypeSettings.ProcessGroup)
+							if (processGroup.GroupName != actuatorCfg.ActuatorTypeSettings.ProcessGroup) continue;
+							foreach (Process process in processGroup.Processes)
 							{
-								foreach (Process process in processGroup.Processes)
-								{
-									processNames.Add(process.ProcessName);
-								}
+								processNames.Add(process.ProcessName);
 							}
 						}
 						// Create Actuator
-						actuator = new VolumeControl(actuatorCfg.Id, actuatorCfg.MaxValue, actuatorCfg.MinValue, actuatorCfg.MaxValue,  actuatorCfg.PhysicalType, 
-							actuatorCfg.ActuatorType, processNames, WAudioHandler);
+						actuator = new VolumeControl(
+							actuatorCfg.Id,
+							actuatorCfg.MaxValue,
+							actuatorCfg.MinValue,
+							actuatorCfg.MaxValue,
+							actuatorCfg.PhysicalType,
+							actuatorCfg.ActuatorType,
+							processNames,
+							WAudioHandler
+						);
+
 						break;
 					default:
 						Console.WriteLine($"[CONTROLLER] [ERROR] Actuator type {actuatorCfg.ActuatorType} is not supported.");
@@ -83,6 +91,48 @@ namespace Knobs.Controller
 				}
 				MActuators[e.Value1].ProcessEvent(e);
 			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!disposed)
+			{
+				if (disposing)
+				{
+					// Dispose managed state (managed objects).
+					if (WAudioHandler != null)
+					{
+						WAudioHandler.Dispose();
+						WAudioHandler = null;
+					}
+
+					foreach (var actuator in MActuators.Values)
+					{
+						if (actuator is IDisposable disposableActuator)
+						{
+							disposableActuator.Dispose();
+						}
+					}
+					MActuators.Clear();
+				}
+
+				// Set large fields to null
+				MActuators = null;
+
+				disposed = true;
+			}
+		}
+
+		// Destructor
+		~Controller()
+		{
+			Dispose(false);
 		}
 	};
 }
