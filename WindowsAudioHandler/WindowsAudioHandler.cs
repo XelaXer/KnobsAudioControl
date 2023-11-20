@@ -7,8 +7,8 @@ namespace Knobs.WindowsAudio
 	{
 		public AudioSessionControl AudioSessionControlObject;
 		public System.Diagnostics.Process SystemProcessObject;
-		public int ProcessId;
-		public string ProcessName;
+		public int ProcessId { get; set; }
+		public string ProcessName { get; set; }
 
 		public void Dispose()
 		{

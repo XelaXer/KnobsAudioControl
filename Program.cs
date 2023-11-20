@@ -258,11 +258,32 @@ class Program
 		}
 	}
 
-	static Task<string> PrintMessageFunction(string message)
+	Task<string> PrintMessageFunction(string message)
 	{
 		Console.WriteLine(message);
-		// await Task.CompletedTask; // To keep it awaitable in case you need to do async operations in the future.
-		string response = "Response to message received"; // Replace with actual response generation logic
-		return Task.FromResult(response); // Wrap the response in a Task and return it
+
+		var jsonElement = JsonDocument.Parse(message).RootElement;
+		var requestid = jsonElement.GetProperty("id").GetString();
+		JsonElement requestParams = jsonElement.GetProperty("requestParams");
+		Console.WriteLine($"Request ID: {requestid}");
+		Console.WriteLine(requestParams.GetProperty("test").GetString());
+		Console.WriteLine(requestParams);
+
+		Dictionary<string, List<WindowsAudioSession>> audioSessions = WindowsAudioHandler.GetAudioSessions();
+		// string jsonStrAudioSessions = JsonSerializer.Serialize(audioSessions);
+
+		var responseData = new Dictionary<string, object>
+		{
+			{ "test", "test" }
+		};
+		var response = new Dictionary<string, object>
+		{
+			{ "id", requestid },
+			{ "response", audioSessions }
+		};
+		string responseString = JsonSerializer.Serialize(response);
+
+		// await Task.CompletedTask;
+		return Task.FromResult(responseString);
 	}
 }
