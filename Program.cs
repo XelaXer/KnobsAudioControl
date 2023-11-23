@@ -68,7 +68,7 @@ class Program
 
 		while (true)
 		{
-			// System.Threading.Thread.Sleep(100);
+			System.Threading.Thread.Sleep(100);
 		}
 	}
 
