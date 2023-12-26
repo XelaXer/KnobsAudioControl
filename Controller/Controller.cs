@@ -11,6 +11,10 @@ namespace Knobs.Controller
 		private WindowsAudioHandler WAudioHandler;
 		private bool disposed = false;
 
+		// Long term TODO: create thread that updates mute state of ToggleMute actuators
+		// SyncActuatorsWithOSState()
+		// currently not needed, do event driven for state changes
+
 		public Controller(ControllerConfiguration ctrlCfg, WindowsAudioHandler audioHandler)
 		{
 			WAudioHandler = audioHandler;

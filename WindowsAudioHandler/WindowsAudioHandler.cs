@@ -65,11 +65,8 @@ namespace Knobs.WindowsAudio
 
 		public void SetVolumeByProcessName(string processName, float volume)
 		{
-			if (DateTime.UtcNow - TimeLastUpdatedSessions > TimeSpan.FromSeconds(2))
-			{
-				Console.WriteLine("[WINDOWS AUDIO HANDLER] [CACHE] Updating process cache");
-				CachedSessions = GetAudioSessions();
-			}
+			// TODO: Optimization: pass array of process names and loop through once
+			CheckUpdateProcessCache();
 			if (CachedSessions.ContainsKey(processName) == false) return;
 			for (int i = 0; i < CachedSessions[processName].Count; i++)
 			{
@@ -80,6 +77,42 @@ namespace Knobs.WindowsAudio
 			// var session = CachedSessions[processName].AudioSessionControlObject;
 			// var simpleAudioVolume = session.SimpleAudioVolume;
 			// simpleAudioVolume.Volume = volume;
+		}
+
+		public void SetMuteByProcessName(string processName, bool muteState)
+		{
+			// TODO: Optimization: pass array of process names and loop through once
+			CheckUpdateProcessCache();
+			if (CachedSessions.ContainsKey(processName) == false) return;
+			for (int i = 0; i < CachedSessions[processName].Count; i++)
+			{
+				var session = CachedSessions[processName][i].AudioSessionControlObject;
+				var simpleAudioVolume = session.SimpleAudioVolume;
+				simpleAudioVolume.Mute = muteState;
+			}
+		}
+
+		public bool GetMuteByProcessName(string processName)
+		{
+			// TODO: Optimization: pass array of process names and loop through once
+			CheckUpdateProcessCache();
+			if (CachedSessions.ContainsKey(processName) == false) return false;
+			for (int i = 0; i < CachedSessions[processName].Count; i++)
+			{
+				var session = CachedSessions[processName][i].AudioSessionControlObject;
+				var simpleAudioVolume = session.SimpleAudioVolume;
+				return simpleAudioVolume.Mute;
+			}
+			return false;
+		}
+
+		void CheckUpdateProcessCache()
+		{
+			if (DateTime.UtcNow - TimeLastUpdatedSessions > TimeSpan.FromSeconds(2))
+			{
+				Console.WriteLine("[WINDOWS AUDIO HANDLER] [CACHE] Updating process cache");
+				CachedSessions = GetAudioSessions();
+			}
 		}
 
 		// TODO: AN: Cleanup and pick method
