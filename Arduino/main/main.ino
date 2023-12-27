@@ -36,16 +36,29 @@ void setup() {
   actuatorMap[0](1, 0);
   actuatorMap[1](2, 0);
   actuatorMap[2](3, 0);
+  actuatorMap[3](4, 0);
+
+  pinMode(3, INPUT_PULLUP);
+  pinMode(4, INPUT_PULLUP);
+  Serial.begin(9600);
 }
 
 void loop() {
+  Serial.println("Pin 3: ");
+  Serial.println(digitalRead(3));
+  Serial.println("Pin 4: ");
+  Serial.println(digitalRead(4));
+  Serial.println("");
+  
   int pot1CurrentValue = analogRead(A0);
   int pot2CurrentValue = analogRead(A1);
   int pot3CurrentValue = analogRead(A2);
+  int pot4CurrentValue = analogRead(A3);
   
   evaluateAndSendActuatorValue(1, pot1CurrentValue);
   evaluateAndSendActuatorValue(2, pot2CurrentValue);
   evaluateAndSendActuatorValue(3, pot3CurrentValue);
+  evaluateAndSendActuatorValue(4, pot4CurrentValue);
   delay(100);
 }
 
