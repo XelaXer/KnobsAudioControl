@@ -14,8 +14,6 @@ namespace Knobs.Actuators
 		public override void ProcessEvent(ControllerEvent cEvent)
 		{
 			bool newMuteState = ToggleMuteState();
-			int newValue = newMuteState ? 1 : 0;
-			SetValue(newValue);
 			Console.WriteLine($"Mute: {newMuteState}");
 		}
 		bool ToggleMuteState()
@@ -26,7 +24,10 @@ namespace Knobs.Actuators
 				muteState = WindowsAudioHandler.GetMuteByProcessName(processName);
 				break;
 			}
+
+			muteState = !muteState;
 			MuteState = muteState;
+			
 			// TODO: change this to use ActiveProcessIds so it doesn't loop over all processes
 			//	ex. the "game" process group might have 1000 process names, but only 1 is active
 			foreach (var processName in ProcessNames)

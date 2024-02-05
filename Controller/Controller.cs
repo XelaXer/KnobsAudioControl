@@ -26,20 +26,20 @@ namespace Knobs.Controller
 				Console.WriteLine($"[CONTROLLER] [INFO] Creating actuator with ID {actuatorCfg.Id} and type {actuatorCfg.ActuatorType}");
 
 				Actuator actuator = null;
+
+				// Get process group
+				List<string> processNames = new();
+				foreach (ProcessGroup processGroup in ctrlCfg.ProcessGroups)
+				{
+					if (processGroup.GroupName != actuatorCfg.ActuatorTypeSettings.ProcessGroup) continue;
+					foreach (Process process in processGroup.Processes)
+					{
+						processNames.Add(process.ProcessName);
+					}
+				}
 				switch (actuatorCfg.ActuatorType)
 				{
 					case "volume_knob":
-						// Get process group
-						List<string> processNames = new();
-						foreach (ProcessGroup processGroup in ctrlCfg.ProcessGroups)
-						{
-							if (processGroup.GroupName != actuatorCfg.ActuatorTypeSettings.ProcessGroup) continue;
-							foreach (Process process in processGroup.Processes)
-							{
-								processNames.Add(process.ProcessName);
-							}
-						}
-						// Create Actuator
 						actuator = new VolumeControl(
 							actuatorCfg.Id,
 							actuatorCfg.MaxValue,
@@ -50,7 +50,18 @@ namespace Knobs.Controller
 							processNames,
 							WAudioHandler
 						);
-
+						break;
+					case "toggle_mute":
+						actuator = new ToggleMute(
+							actuatorCfg.Id,
+							actuatorCfg.MaxValue,
+							actuatorCfg.MinValue,
+							actuatorCfg.MaxValue,
+							actuatorCfg.PhysicalType,
+							actuatorCfg.ActuatorType,
+							processNames,
+							WAudioHandler
+						);
 						break;
 					default:
 						Console.WriteLine($"[CONTROLLER] [ERROR] Actuator type {actuatorCfg.ActuatorType} is not supported.");
