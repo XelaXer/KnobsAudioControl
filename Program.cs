@@ -3,6 +3,7 @@ using IHID.HIDManager;
 using IHID.HIDDevice;
 using Knobs.Controller;
 using Knobs.WindowsAudio;
+using System.Text;
 
 class Program
 {
@@ -66,8 +67,46 @@ class Program
 		_pipeHandler.AddFunction("get-current-audio-session-programs", PrintMessageFunction);
 		_pipeHandler.StartReadLoop();
 
+		
+
 		while (true)
 		{
+			// byte[] bytes = Encoding.ASCII.GetBytes(" Hello from C#");
+			/*
+				0 -> type
+					event
+					message
+				1 -> value1
+				2 -> value2
+				3 -> value3
+				4 -> value4
+
+				type = "event"
+				value1 = LED ID
+					LED ID
+
+			*/
+			// Send white color to LED 300
+			string[] arrHIDEvent = new string[5];
+			arrHIDEvent[0] = " event";
+			arrHIDEvent[1] = "300";
+			arrHIDEvent[2] = "255";
+			arrHIDEvent[3] = "255";
+			arrHIDEvent[4] = "255";
+
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < arrHIDEvent.Length; i++)
+			{
+				sb.Append(arrHIDEvent[i]);
+				if (i < arrHIDEvent.Length - 1) // Don't add the delimiter after the last string
+				{
+					sb.Append(",");
+				}
+			}
+
+			byte[] bytes = Encoding.UTF8.GetBytes(sb.ToString());
+
+			HDevice?.WriteEvent(bytes);
 			System.Threading.Thread.Sleep(100);
 		}
 	}
@@ -155,7 +194,7 @@ class Program
 
 	void ReloadController(ControllerConfiguration cfg)
 	{
-		// Controller = null;\
+		// Controller = null;
 		if (Controller != null)
 		{
 			Controller.Dispose();

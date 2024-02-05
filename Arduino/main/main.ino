@@ -35,10 +35,10 @@
 #define LED_COUNT 2
 #define BRIGHTNESS 200
 
-Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRBW + NEO_KHZ800);
+Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 
 void sendActuatorEvent(long actuatorId, long actuatorValue, long value3);
-void evaluateAndSendActuatorValue(int actuatorId, int currentValue);
+void evalActuator(String type, int currentValue);
 
 HashMap<int, int> actuatorPinMap = HashMap<int, int>(MAP_SIZE);
 HashMap<int, int> actuatorValueMap = HashMap<int, int>(MAP_SIZE);
@@ -57,8 +57,10 @@ void setup() {
   strip.show();            // Turn OFF all pixels ASAP
   strip.setBrightness(BRIGHTNESS);
 
-  strip.setPixelColor(0, strip.Color(0, 150, 0)); 
-  strip.setPixelColor(1, strip.Color(150, 0, 0));
+  strip.setPixelColor(0, strip.Color(255, 255, 255)); 
+  strip.setPixelColor(1, strip.Color(255, 255, 255));
+  // strip.setPixelColor(2, strip.Color(255, 255, 255));
+
   strip.show();
 
   // For LED, // Pin 0 is main LED, the use addresses 1, 3, 5 for neopixel chaining
@@ -69,23 +71,23 @@ void setup() {
   // =======================
   actuatorPinMap[0](100, A0);
   actuatorPinMap[1](200, 3); // Digital Push Button pins unmapped
-  actuatorPinMap[2](300, 1);
+  actuatorPinMap[2](300, 0);
 
   actuatorPinMap[3](101, A1);
   actuatorPinMap[4](201, 4);
-  actuatorPinMap[5](301, 2);
+  actuatorPinMap[5](301, 1);
 
   actuatorPinMap[6](102, A2);
   actuatorPinMap[7](202, -1);
-  actuatorPinMap[8](302, 3);
+  actuatorPinMap[8](302, 2);
 
   actuatorPinMap[9](103, A3);
   actuatorPinMap[10](203, -1);
-  actuatorPinMap[11](303, 4);
+  actuatorPinMap[11](303, 3);
 
   actuatorPinMap[12](104, A9);
   actuatorPinMap[13](204, -1);
-  actuatorPinMap[14](304, 5);
+  actuatorPinMap[14](304, 4);
 
   actuatorValueMap[0](100, 0);
   actuatorValueMap[1](101, 0);
@@ -113,21 +115,7 @@ void loop() {
     evalActuator("mom_switch", momSwitches[m]);
   }
 
-  /*
-  int pot1CurrentValue = analogRead(A0);
-  int pot2CurrentValue = analogRead(A1);
-  int pot3CurrentValue = analogRead(A2);
-  int pot4CurrentValue = analogRead(A3);
-  int pot5CurrentValue = analogRead(A9);
-  
-  evaluateAndSendActuatorValue(100, pot1CurrentValue);
-  evaluateAndSendActuatorValue(200, pot2CurrentValue);
-  evaluateAndSendActuatorValue(300, pot3CurrentValue);
-  evaluateAndSendActuatorValue(400, pot4CurrentValue);
-  evaluateAndSendActuatorValue(500, pot5CurrentValue);
-  */
-
-  // parseHidEventV1();
+  parseHidEventV1();
 
   delay(50);
 }
@@ -142,10 +130,49 @@ void parseHidEventV1 () {
           message += c; // Append the character to your message string
       }
       Serial.println(message); // Print the complete message
+
+      // Now, let's split the message and convert to integers
+      String eventType = message.substring(0, message.indexOf(','));
+      int firstCommaIndex = message.indexOf(',');
+      int secondCommaIndex = message.indexOf(',', firstCommaIndex + 1);
+      int thirdCommaIndex = message.indexOf(',', secondCommaIndex + 1);
+      int fourthCommaIndex = message.indexOf(',', thirdCommaIndex + 1);
+      
+      // Extracting integer values from the CSV string
+      int value1 = message.substring(firstCommaIndex + 1, secondCommaIndex).toInt();
+      int value2 = message.substring(secondCommaIndex + 1, thirdCommaIndex).toInt();
+      int value3 = message.substring(thirdCommaIndex + 1, fourthCommaIndex).toInt();
+      int value4 = message.substring(fourthCommaIndex + 1).toInt();
+      
+      // Debugging: print the extracted values
+      Serial.print("Event Type: ");
+      Serial.println(eventType);
+      Serial.print("Value 1: ");
+      Serial.println(value1);
+      Serial.print("Value 2: ");
+      Serial.println(value2);
+      Serial.print("Value 3: ");
+      Serial.println(value3);
+      Serial.print("Value 4: ");
+      Serial.println(value4);
+
+      if (eventType == "event") evalEvent(value1, value2, value3, value4);
   }
 }
 
-void parseHidEventV2 () {
+void evalEvent(int actuatorId, int value1, int value2, int value3) {
+    // Get Actuator Pin
+    int actPinIdx = actuatorPinMap.getIndexOf(actuatorId);
+    if (actPinIdx == -1) return;
+    int actPin = actuatorPinMap.getValueOf(actuatorId);
+    if (actPin == -1) return;
+
+    // LED
+    strip.setPixelColor(actPin, strip.Color(value1, value2, value3));
+    strip.show();
+}
+
+void parseHidEventV2() {
   if (RawHID.available() > 0) {
         String message = "";
         // Continuously read data until there's none left
