@@ -83,5 +83,11 @@ namespace IHID.HIDDevice
 				_cancellationTokenSource = null; // reset the token source for future use if needed
 			}
 		}
+
+		public bool WriteEvent(byte[] data)
+		{
+			if (Device == null) return false;
+			return Device.Write(data);
+		}
 	}
 }
