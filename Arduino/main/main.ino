@@ -192,18 +192,14 @@ void evalActuator(String type, int actuatorId) {
     }
     if (type == "mom_switch") {
       // If last value is 0 and current value is 0, early exit
+      // If last value is 1 and current value is 1, early exit
       // If last value is 1 and current value is 0, set last value + send message
       // If last value is 0 and current value is 1, set last value
-      // If last value is 1 and current value is 1, early exit
       int msVal = digitalRead(actPin);
-      if (storedValue == 0 && msVal == 0) return;
-
-      if (msVal == 0 && ) {
-        actuatorValueMap[actuatorIndex].setValue(potVal);
-        sendActuatorEvent(actuatorId, msVal, 0);
-      }
+      if (storedValue == msVal) return;
+      actuatorValueMap[actuatorIndex].setValue(msVal);
+      if (storedValue == 1 && msVal == 0) sendActuatorEvent(actuatorId, msVal, 0);
     }
-
 }
 
 // String str1 = String("Actuator: ") + actuatorId + String("  New value: ") + potVal + String("   Old value: ") + storedValue;
