@@ -1,3 +1,4 @@
+using IHID.HIDDevice;
 using Knobs.Controller;
 namespace Knobs.Actuators
 {
@@ -21,6 +22,8 @@ namespace Knobs.Actuators
 		}
 
 		public abstract void ProcessEvent(ControllerEvent cEvent);
+
+		public abstract void UpdateActuatorState(IHIDDevice device);
 
 		public void SetValue(int value)
 		{

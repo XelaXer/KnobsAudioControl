@@ -156,6 +156,31 @@ namespace Knobs.WindowsAudio
 		}
 	}
 }
+
+/*
+		public List<Tuple<string, bool>> GetAllMuteStates()
+        {
+			CheckUpdateProcessCache();
+
+            List<Tuple<string, bool>> muteStates = new List<Tuple<string, bool>>();
+
+            foreach (var entry in CachedSessions)
+            {
+                string processName = entry.Key;
+                var sessions = entry.Value;
+
+                foreach (var session in sessions)
+                {
+                    var simpleAudioVolume = session.AudioSessionControlObject.SimpleAudioVolume;
+                    bool isMuted = simpleAudioVolume.Mute;
+                    muteStates.Add(new Tuple<string, bool>(processName, isMuted));
+                }
+            }
+
+            return muteStates;
+        }
+*/
+
 /*
 Process Cache:
             Dictionary<string, List<int>> processNameToProcessId = new Dictionary<string, List<int>>();

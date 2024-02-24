@@ -1,5 +1,6 @@
 using Knobs.WindowsAudio;
 using Knobs.Controller;
+using IHID.HIDDevice;
 // using NAudio.MediaFoundation;
 namespace Knobs.Actuators
 {
@@ -33,6 +34,23 @@ namespace Knobs.Actuators
 			foreach (var processName in ProcessNames)
 			{
 				WindowsAudioHandler.SetMuteByProcessName(processName, muteState);
+			}
+			return muteState;
+		}
+
+
+		public override void UpdateActuatorState(IHIDDevice device)
+		{
+			return;
+		}
+
+		public bool GetMuteState()
+		{
+			bool muteState = false;
+			foreach (var processName in ProcessNames)
+			{
+				muteState = WindowsAudioHandler.GetMuteByProcessName(processName);
+				break;
 			}
 			return muteState;
 		}

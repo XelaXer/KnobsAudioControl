@@ -86,6 +86,16 @@ class Program
 					LED ID
 
 			*/
+			/*
+			var allMuteStates = WindowsAudioHandler.GetAllMuteStates();
+			foreach (var state in allMuteStates)
+			{
+				Console.WriteLine($"Process: {state.Item1}, Muted: {state.Item2}");
+			}
+			*/
+
+
+
 			// Send white color to LED 300
 			string[] arrHIDEvent = new string[5];
 			arrHIDEvent[0] = " event";

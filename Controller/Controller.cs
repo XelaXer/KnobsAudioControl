@@ -72,6 +72,12 @@ namespace Knobs.Controller
 					MActuators.Add(actuatorCfg.Id, actuator);
 				}
 			}
+
+			Thread updateThread = new Thread(new ThreadStart(BackgroundUpdateLoop))
+			{
+				IsBackground = true
+			};
+			updateThread.Start();
 		}
 
 		public void ProcessHIDEvent(byte[] receivedData)
@@ -105,6 +111,25 @@ namespace Knobs.Controller
 					return;
 				}
 				MActuators[e.Value1].ProcessEvent(e);
+			}
+		}
+
+		public void UpdateControllerState()
+		{
+			foreach (var actuatorPair in MActuators)
+			{
+				var actuator = actuatorPair.Value;
+				// bool isMuted = actuator.UpdateActuatorState();
+				// Console.WriteLine($"Actuator ID: {actuatorPair.Key}, Muted: {isMuted}");
+			}
+		}
+
+		private void BackgroundUpdateLoop()
+		{
+			while (!disposed)
+			{
+				UpdateControllerState();
+				Thread.Sleep(150);
 			}
 		}
 

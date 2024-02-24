@@ -1,5 +1,6 @@
 using Knobs.WindowsAudio;
 using Knobs.Controller;
+using IHID.HIDDevice;
 // using NAudio.MediaFoundation;
 namespace Knobs.Actuators
 {
@@ -17,6 +18,11 @@ namespace Knobs.Actuators
 			float volume = NormalizeFloat(cEvent.Value2, minValue, maxValue, 0, 1);
 			Console.WriteLine($"Volume: {volume}");
 			SetVolume(volume);
+		}
+
+		public override void UpdateActuatorState(IHIDDevice device)
+		{
+			return;
 		}
 
 		void SetVolume(float volume)

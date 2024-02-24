@@ -2,7 +2,7 @@ using HidLibrary;
 
 namespace IHID.HIDDevice
 {
-	class IHIDDevice
+	public class IHIDDevice
 	{
 		HidDevice? Device;
 		int VendorID;
