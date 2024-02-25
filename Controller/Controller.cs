@@ -2,12 +2,14 @@ using System.Diagnostics;
 using System.Text;
 using Knobs.WindowsAudio;
 using Knobs.Actuators;
+using Knobs.ActuatorGroups;
 
 namespace Knobs.Controller
 {
 	class Controller : IDisposable
 	{
 		private Dictionary<int, Actuator> MActuators;
+		private Dictionary<int, ActuatorGroup> MActuatorGroups;
 		private WindowsAudioHandler WAudioHandler;
 		private bool disposed = false;
 
@@ -20,56 +22,81 @@ namespace Knobs.Controller
 			WAudioHandler = audioHandler;
 			MActuators = new Dictionary<int, Actuator>();
 
-			// Create actuators
-			foreach (ActuatorConfig actuatorCfg in ctrlCfg.Actuators)
+			foreach (ActuatorGroupConfig actuatorGroupCfg in ctrlCfg.ActuatorGroups)
 			{
-				Console.WriteLine($"[CONTROLLER] [INFO] Creating actuator with ID {actuatorCfg.Id} and type {actuatorCfg.ActuatorType}");
+				Console.WriteLine($"[CONTROLLER] [INFO] Creating actuator group with ID {actuatorGroupCfg.Id} and process group {actuatorGroupCfg.ProcessGroup}");
 
-				Actuator actuator = null;
+				ActuatorGroup actuatorGroup = new ActuatorGroup(
+					actuatorGroupCfg.Id,
+					actuatorGroupCfg.ProcessGroup,
+					new List<Actuator>()
+				);
 
-				// Get process group
+				// Get array of process names from process group for the actuators in the group
 				List<string> processNames = new();
 				foreach (ProcessGroup processGroup in ctrlCfg.ProcessGroups)
 				{
-					if (processGroup.GroupName != actuatorCfg.ActuatorTypeSettings.ProcessGroup) continue;
+					if (processGroup.GroupName != actuatorGroupCfg.ProcessGroup) continue;
 					foreach (Process process in processGroup.Processes)
 					{
 						processNames.Add(process.ProcessName);
 					}
 				}
-				switch (actuatorCfg.ActuatorType)
+
+				// Create actuators
+				foreach (ActuatorConfig actuatorCfg in actuatorGroupCfg.Actuators)
 				{
-					case "volume_knob":
-						actuator = new VolumeControl(
-							actuatorCfg.Id,
-							actuatorCfg.MaxValue,
-							actuatorCfg.MinValue,
-							actuatorCfg.MaxValue,
-							actuatorCfg.PhysicalType,
-							actuatorCfg.ActuatorType,
-							processNames,
-							WAudioHandler
-						);
-						break;
-					case "toggle_mute":
-						actuator = new ToggleMute(
-							actuatorCfg.Id,
-							actuatorCfg.MaxValue,
-							actuatorCfg.MinValue,
-							actuatorCfg.MaxValue,
-							actuatorCfg.PhysicalType,
-							actuatorCfg.ActuatorType,
-							processNames,
-							WAudioHandler
-						);
-						break;
-					default:
-						Console.WriteLine($"[CONTROLLER] [ERROR] Actuator type {actuatorCfg.ActuatorType} is not supported.");
-						break;
-				}
-				if (actuator != null)
-				{
-					MActuators.Add(actuatorCfg.Id, actuator);
+					Console.WriteLine($"[CONTROLLER] [INFO] Creating actuator with ID {actuatorCfg.Id} and type {actuatorCfg.ActuatorType}");
+					Actuator actuator = null;
+					switch (actuatorCfg.ActuatorType)
+					{
+						case "volume_knob":
+							actuator = new VolumeControl(
+								actuatorCfg.Id,
+								actuatorCfg.MaxValue,
+								actuatorCfg.MinValue,
+								actuatorCfg.MaxValue,
+								actuatorCfg.PhysicalType,
+								actuatorCfg.ActuatorType,
+								processNames,
+								WAudioHandler
+							);
+							break;
+						case "toggle_mute":
+							actuator = new ToggleMute(
+								actuatorCfg.Id,
+								actuatorCfg.MaxValue,
+								actuatorCfg.MinValue,
+								actuatorCfg.MaxValue,
+								actuatorCfg.PhysicalType,
+								actuatorCfg.ActuatorType,
+								processNames,
+								WAudioHandler
+							);
+							break;
+						case "led":
+							/*
+							actuator = new Led(
+								actuatorCfg.Id,
+								actuatorCfg.MaxValue,
+								actuatorCfg.MinValue,
+								actuatorCfg.MaxValue,
+								actuatorCfg.PhysicalType,
+								actuatorCfg.ActuatorType,
+								processNames,
+								WAudioHandler
+							);
+							*/
+							break;
+						default:
+							Console.WriteLine($"[CONTROLLER] [ERROR] Actuator type {actuatorCfg.ActuatorType} is not supported.");
+							break;
+					}
+					if (actuator != null)
+					{
+						actuatorGroup.AddActuator(actuator);
+						MActuators.Add(actuatorCfg.Id, actuator);
+					}
 				}
 			}
 
@@ -145,7 +172,6 @@ namespace Knobs.Controller
 			{
 				if (disposing)
 				{
-					// Dispose managed state (managed objects).
 					if (WAudioHandler != null)
 					{
 						WAudioHandler.Dispose();
@@ -160,27 +186,24 @@ namespace Knobs.Controller
 						}
 					}
 					MActuators.Clear();
+
+					foreach (var actuatorGroup in MActuatorGroups.Values)
+					{
+						if (actuatorGroup is IDisposable disposableActuator)
+						{
+							disposableActuator.Dispose();
+						}
+					}
+					MActuatorGroups.Clear();
 				}
-
-				// Set large fields to null
 				MActuators = null;
-
+				MActuatorGroups = null;
 				disposed = true;
 			}
 		}
-
-		// Destructor
 		~Controller()
 		{
 			Dispose(false);
 		}
 	};
 }
-
-/*
-	public struct ControllerConfiguration
-	{
-		public List<object> Actuators;
-		public List<object> ProcessGroups;
-	};
-*/

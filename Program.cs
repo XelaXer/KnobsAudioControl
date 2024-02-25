@@ -36,7 +36,9 @@ class Program
 					If JSON parse fails, sleep thread
 				Return configuration object
 		*/
-		string fileName = "test_controller_config_v2.json";
+
+		//, test_controller_config_v2.json
+		string fileName = "controller_config_v3.json";
 		string filePath = Path.Combine(CONFIG_DIRECTORY, fileName);
 		ControllerConfiguration? configuration = PollAndParseConfigurationFile(filePath);
 		if (configuration == null)
@@ -50,11 +52,6 @@ class Program
 		Controller = new Controller(configuration, WindowsAudioHandler);
 		HManager = new HIDManager();
 
-		/*
-		HDevice = HManager.LoadDefaultDevice();
-		HDevice.OpenDevice();
-		HDevice.StartReading(Controller.ProcessHIDEvent);
-		*/
 		InitializeHIDDevice();
 
 		// Start a new thread to poll the HID device
@@ -94,8 +91,6 @@ class Program
 			}
 			*/
 
-
-
 			// Send white color to LED 300
 			string[] arrHIDEvent = new string[5];
 			arrHIDEvent[0] = " event";
@@ -103,22 +98,27 @@ class Program
 			arrHIDEvent[2] = "255";
 			arrHIDEvent[3] = "255";
 			arrHIDEvent[4] = "255";
-
-			StringBuilder sb = new StringBuilder();
-			for (int i = 0; i < arrHIDEvent.Length; i++)
-			{
-				sb.Append(arrHIDEvent[i]);
-				if (i < arrHIDEvent.Length - 1) // Don't add the delimiter after the last string
-				{
-					sb.Append(",");
-				}
-			}
-
-			byte[] bytes = Encoding.UTF8.GetBytes(sb.ToString());
-
-			HDevice?.WriteEvent(bytes);
+			SendHIDEvent(arrHIDEvent);
+			
 			System.Threading.Thread.Sleep(100);
 		}
+	}
+
+	public void SendHIDEvent(string[] arrHIDEvent)
+	{
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < arrHIDEvent.Length; i++)
+		{
+			sb.Append(arrHIDEvent[i]);
+			if (i < arrHIDEvent.Length - 1) // Don't add the delimiter after the last string
+			{
+				sb.Append(",");
+			}
+		}
+
+		byte[] bytes = Encoding.UTF8.GetBytes(sb.ToString());
+
+		HDevice?.WriteEvent(bytes);
 	}
 
 	static public ControllerConfiguration? PollAndParseConfigurationFile(string filePath)
@@ -145,11 +145,21 @@ class Program
 
 			ControllerConfiguration? configuration = JsonSerializer.Deserialize<ControllerConfiguration>(fileContents, options);
 
-			if (configuration?.Actuators != null)
+			if (configuration?.ActuatorGroups != null)
 			{
-				foreach (var actuator in configuration.Actuators)
+				foreach (var actuatorGroup in configuration.ActuatorGroups)
 				{
-					Console.WriteLine($"Actuator ID: {actuator.Id}, Actuator Type: {actuator.ActuatorType}");
+					Console.WriteLine($"[CTRL CFG] =======================================");
+					Console.WriteLine($"[CTRL CFG] Actuator Group ID: {actuatorGroup.Id}");
+					Console.WriteLine($"[CTRL CFG] Process Group: {actuatorGroup.ProcessGroup}");
+					foreach (var actuator in actuatorGroup.Actuators)
+					{
+						Console.WriteLine($"[CTRL CFG] Actuator ID: {actuator.Id}");
+						Console.WriteLine($"[CTRL CFG] Actuator Type: {actuator.ActuatorType}");
+						Console.WriteLine($"[CTRL CFG] Actuator Physical Type: {actuator.PhysicalType}");
+						Console.WriteLine($"[CTRL CFG] Actuator Min Value: {actuator.MinValue}");
+						Console.WriteLine($"[CTRL CFG] Actuator Max Value: {actuator.MaxValue}");
+					}
 				}
 			}
 
