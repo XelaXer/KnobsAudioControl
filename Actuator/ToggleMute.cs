@@ -39,7 +39,7 @@ namespace Knobs.Actuators
 		}
 
 
-		public override void UpdateActuatorState(IHIDDevice device)
+		public override void UpdateActuatorState(IHIDDevice? device)
 		{
 			return;
 		}

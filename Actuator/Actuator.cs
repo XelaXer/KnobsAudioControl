@@ -9,7 +9,7 @@ namespace Knobs.Actuators
 		protected int minValue;
 		protected int maxValue;
 		private string physicalType;
-		private string actuatorType;
+		private string actuatorType { get; }
 
 		public Actuator(int id, int value, int minValue, int maxValue, string physicalType, string actuatorType)
 		{
@@ -23,7 +23,7 @@ namespace Knobs.Actuators
 
 		public abstract void ProcessEvent(ControllerEvent cEvent);
 
-		public abstract void UpdateActuatorState(IHIDDevice device);
+		public abstract void UpdateActuatorState(IHIDDevice? device);
 
 		public void SetValue(int value)
 		{

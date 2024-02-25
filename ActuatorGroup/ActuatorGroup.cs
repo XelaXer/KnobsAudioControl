@@ -1,18 +1,28 @@
 using Knobs.Actuators;
 namespace Knobs.ActuatorGroups {
 	public class ActuatorGroup {
-		private int id { get; }
-		private string? processGroup;
-		private List<Actuator> actuators;
+		private int Id { get; }
+		private string Type { get; }
+		private string? ProcessGroup;
+		private List<Actuator> Actuators;
 
-		public ActuatorGroup(int id, string? processGroup, List<Actuator> actuators) {
-			this.id = id;
-			this.processGroup = processGroup;
-			this.actuators = actuators;
+		public ActuatorGroup(int id, string type, string? processGroup, List<Actuator> actuators) {
+			Id = id;
+			Type = type;
+			ProcessGroup = processGroup;
+			Actuators = actuators;
 		}
 
 		public void AddActuator(Actuator actuator) {
-			actuators.Add(actuator);
+			Actuators.Add(actuator);
+		}
+
+		public IEnumerable<Actuator> GetActuators()
+		{
+			foreach (var actuator in Actuators)
+			{
+				yield return actuator;
+			}
 		}
 	}
 }

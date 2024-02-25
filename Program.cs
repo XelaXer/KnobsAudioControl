@@ -68,6 +68,19 @@ class Program
 
 		while (true)
 		{
+
+			foreach (var actuatorGroup in Controller.GetActuatorGroups())
+			{
+				foreach (var actuator in actuatorGroup.GetActuators())
+				{
+					if (actuator.actuatorType())
+					actuator.UpdateActuatorState(HDevice);
+				}
+			
+			}
+			
+
+
 			// byte[] bytes = Encoding.ASCII.GetBytes(" Hello from C#");
 			/*
 				0 -> type

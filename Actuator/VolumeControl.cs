@@ -20,7 +20,7 @@ namespace Knobs.Actuators
 			SetVolume(volume);
 		}
 
-		public override void UpdateActuatorState(IHIDDevice device)
+		public override void UpdateActuatorState(IHIDDevice? device)
 		{
 			return;
 		}

@@ -3,6 +3,7 @@ using System.Text;
 using Knobs.WindowsAudio;
 using Knobs.Actuators;
 using Knobs.ActuatorGroups;
+using System.Text.RegularExpressions;
 
 namespace Knobs.Controller
 {
@@ -21,6 +22,7 @@ namespace Knobs.Controller
 		{
 			WAudioHandler = audioHandler;
 			MActuators = new Dictionary<int, Actuator>();
+			MActuatorGroups = new Dictionary<int, ActuatorGroup>();
 
 			foreach (ActuatorGroupConfig actuatorGroupCfg in ctrlCfg.ActuatorGroups)
 			{
@@ -28,6 +30,7 @@ namespace Knobs.Controller
 
 				ActuatorGroup actuatorGroup = new ActuatorGroup(
 					actuatorGroupCfg.Id,
+					actuatorGroupCfg.GroupType,
 					actuatorGroupCfg.ProcessGroup,
 					new List<Actuator>()
 				);
@@ -105,6 +108,23 @@ namespace Knobs.Controller
 				IsBackground = true
 			};
 			updateThread.Start();
+		}
+
+		public IEnumerable<ActuatorGroup> GetActuatorGroups()
+		{
+			foreach (var actuatorGroup in MActuatorGroups.Values)
+			{
+				yield return actuatorGroup;
+			}
+		}
+
+		public Actuator GetActuatorById(int id)
+		{
+			if (MActuators.ContainsKey(id))
+			{
+				return MActuators[id];
+			}
+			return null;
 		}
 
 		public void ProcessHIDEvent(byte[] receivedData)
