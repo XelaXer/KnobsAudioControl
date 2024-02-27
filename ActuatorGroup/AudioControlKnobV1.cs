@@ -30,7 +30,7 @@ namespace Knobs.ActuatorGroups
 			// this.MActuatorListByType
 		}
 
-		public override void UpdateState(IHIDDevice device)
+		public override void UpdateState(IHIDDevice? device)
 		{
 			bool liveMute = toggleMute.GetLiveMuteState();
 			bool savedMute = toggleMute.GetSavedMuteState();

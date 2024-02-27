@@ -167,7 +167,7 @@ namespace Knobs.Controller
 			}
 		}
 
-		public void UpdateControllerState(IHIDDevice device)
+		public void UpdateControllerState(IHIDDevice? device)
 		{
 			foreach (var actuatorGroup in GetActuatorGroups())
 			{

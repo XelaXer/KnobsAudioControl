@@ -33,7 +33,7 @@ namespace Knobs.ActuatorGroups {
 			}
 		}
 
-		public virtual void UpdateState(IHIDDevice device) {}
+		public virtual void UpdateState(IHIDDevice? device) {}
 
 		public int GetId()
 		{
