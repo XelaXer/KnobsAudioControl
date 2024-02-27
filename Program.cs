@@ -69,6 +69,9 @@ class Program
 
 		while (true)
 		{
+			// Update Controller State
+
+
 			Console.WriteLine("[NEW NEW NEW]");
 			foreach (var actuatorGroup in Controller.GetActuatorGroups())
 			{

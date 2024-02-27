@@ -4,6 +4,7 @@ using Knobs.WindowsAudio;
 using Knobs.Actuators;
 using Knobs.ActuatorGroups;
 using System.Text.RegularExpressions;
+using IHID.HIDDevice;
 
 namespace Knobs.Controller
 {
@@ -70,19 +71,15 @@ namespace Knobs.Controller
 								WAudioHandler
 							);
 							break;
-						case "led":
-							/*
-							actuator = new Led(
+						case "rgb_led":
+							actuator = new RGBLED(
 								actuatorCfg.Id,
 								actuatorCfg.MaxValue,
 								actuatorCfg.MinValue,
 								actuatorCfg.MaxValue,
 								actuatorCfg.PhysicalType,
-								actuatorCfg.ActuatorType,
-								processNames,
-								WAudioHandler
+								actuatorCfg.ActuatorType
 							);
-							*/
 							break;
 						default:
 							Console.WriteLine($"[CONTROLLER] [ERROR] Actuator type {actuatorCfg.ActuatorType} is not supported.");
@@ -99,7 +96,7 @@ namespace Knobs.Controller
 				Console.WriteLine($"[CONTROLLER] [INFO] Creating actuator group with ID {actuatorGroupCfg.Id} and process group {actuatorGroupCfg.ProcessGroup}");
 
 				// Create actuator group
-				ActuatorGroup actuatorGroup = new ActuatorGroup(
+				ActuatorGroup actuatorGroup = new AudioControlKnobV1(
 					actuatorGroupCfg.Id,
 					actuatorGroupCfg.GroupType,
 					actuatorGroupCfg.ProcessGroup,
@@ -170,13 +167,11 @@ namespace Knobs.Controller
 			}
 		}
 
-		public void UpdateControllerState()
+		public void UpdateControllerState(IHIDDevice device)
 		{
-			foreach (var actuatorPair in MActuators)
+			foreach (var actuatorGroup in GetActuatorGroups())
 			{
-				var actuator = actuatorPair.Value;
-				// bool isMuted = actuator.UpdateActuatorState();
-				// Console.WriteLine($"Actuator ID: {actuatorPair.Key}, Muted: {isMuted}");
+				actuatorGroup.UpdateState(device);
 			}
 		}
 
@@ -184,7 +179,7 @@ namespace Knobs.Controller
 		{
 			while (!disposed)
 			{
-				UpdateControllerState();
+				// UpdateControllerState();
 				Thread.Sleep(150);
 			}
 		}
