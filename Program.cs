@@ -4,6 +4,7 @@ using IHID.HIDDevice;
 using Knobs.Controller;
 using Knobs.WindowsAudio;
 using System.Text;
+using Knobs.Actuators;
 
 class Program
 {
@@ -68,13 +69,63 @@ class Program
 
 		while (true)
 		{
-
+			Console.WriteLine("[NEW NEW NEW]");
 			foreach (var actuatorGroup in Controller.GetActuatorGroups())
 			{
+				string actuatorGroupType = actuatorGroup.GetGroupType();
+
+				// Run update group
+
+
+				// Console.WriteLine($"[MAIN] Actuator Group Type: {actuatorGroupType}");
+				if (actuatorGroupType == "audio_control_knob_v1")
+				{
+					ToggleMute tm = (ToggleMute)actuatorGroup.MActuatorListByType["toggle_mute"][0];
+					bool liveState = tm.GetLiveMuteState();
+					bool savedState = tm.GetSavedMuteState();
+
+					// Console.WriteLine($"[MAIN] [UPDATE STATE] Live state: {liveState}, Saved state: {savedState}");
+					if (liveState != savedState)
+					{
+						tm.UpdateMuteState(liveState);
+						Console.WriteLine("!!!!!!!!!!!!!!! MISMATCH !!!!!!!!!!!!!!!!!");
+						// Update State of LED actuator
+
+						if (liveState == false)
+						{
+							// Clear LED
+							string[] arrHIDEvent = new string[5];
+							arrHIDEvent[0] = " event";
+							arrHIDEvent[1] = "300";
+							arrHIDEvent[2] = "0";
+							arrHIDEvent[3] = "0";
+							arrHIDEvent[4] = "0";
+							SendHIDEvent(arrHIDEvent);
+						}
+						else
+						{
+							// Send white color to LED 300
+							string[] arrHIDEvent = new string[5];
+							arrHIDEvent[0] = " event";
+							arrHIDEvent[1] = "300";
+							arrHIDEvent[2] = "255";
+							arrHIDEvent[3] = "255";
+							arrHIDEvent[4] = "255";
+							SendHIDEvent(arrHIDEvent);
+						}
+					}
+				}
+				
+				// Console.WriteLine(actuatorGroup.GetId());
 				foreach (var actuator in actuatorGroup.GetActuators())
 				{
-					if (actuator.actuatorType())
-					actuator.UpdateActuatorState(HDevice);
+					string actuatorType = actuator.GetActuatorType();
+					// Console.WriteLine(actuatorType);
+					if (actuatorType == "toggle_mute")
+					{
+						//
+					}
+					// actuator.UpdateActuatorState(HDevice);
 				}
 			
 			}
@@ -104,14 +155,7 @@ class Program
 			}
 			*/
 
-			// Send white color to LED 300
-			string[] arrHIDEvent = new string[5];
-			arrHIDEvent[0] = " event";
-			arrHIDEvent[1] = "300";
-			arrHIDEvent[2] = "255";
-			arrHIDEvent[3] = "255";
-			arrHIDEvent[4] = "255";
-			SendHIDEvent(arrHIDEvent);
+
 			
 			System.Threading.Thread.Sleep(100);
 		}

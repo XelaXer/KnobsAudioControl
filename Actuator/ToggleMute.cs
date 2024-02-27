@@ -15,9 +15,9 @@ namespace Knobs.Actuators
 		public override void ProcessEvent(ControllerEvent cEvent)
 		{
 			bool newMuteState = ToggleMuteState();
-			Console.WriteLine($"Mute: {newMuteState}");
+			Console.WriteLine($"[TOGGLE MUTE] Mute: {newMuteState}");
 		}
-		bool ToggleMuteState()
+		public bool ToggleMuteState()
 		{
 			bool muteState = false;
 			foreach (var processName in ProcessNames)
@@ -38,13 +38,23 @@ namespace Knobs.Actuators
 			return muteState;
 		}
 
+		public void UpdateMuteState(bool muteState)
+		{
+			MuteState = muteState;
+		}
+
 
 		public override void UpdateActuatorState(IHIDDevice? device)
 		{
 			return;
 		}
 
-		public bool GetMuteState()
+		public bool GetSavedMuteState()
+		{
+			return MuteState;
+		}
+
+		public bool GetLiveMuteState()
 		{
 			bool muteState = false;
 			foreach (var processName in ProcessNames)

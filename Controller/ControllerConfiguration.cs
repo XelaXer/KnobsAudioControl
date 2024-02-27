@@ -18,9 +18,9 @@ namespace Knobs.Controller
 	{
 		[JsonPropertyName("actuator_group_id")]
 		public int Id { get; set; }
-		[JsonPropertyName("process_group")]
-		public required string GroupType { get; set; }
 		[JsonPropertyName("group_type")]
+		public required string GroupType { get; set; }
+		[JsonPropertyName("process_group")]
 		public string? ProcessGroup { get; set; }
 		[JsonPropertyName("actuators")]
 		public required List<ActuatorConfig> Actuators { get; set; }

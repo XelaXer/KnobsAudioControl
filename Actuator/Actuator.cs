@@ -30,6 +30,16 @@ namespace Knobs.Actuators
 			this.value = value;
 		}
 
+		public int GetId()
+		{
+			return id;
+		}
+
+		public string GetActuatorType()
+		{
+			return actuatorType;
+		}
+
 		public static float NormalizeFloat(float value, float inMin, float inMax, float outMin, float outMax)
 		{
 			return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;

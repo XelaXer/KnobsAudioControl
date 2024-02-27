@@ -26,15 +26,6 @@ namespace Knobs.Controller
 
 			foreach (ActuatorGroupConfig actuatorGroupCfg in ctrlCfg.ActuatorGroups)
 			{
-				Console.WriteLine($"[CONTROLLER] [INFO] Creating actuator group with ID {actuatorGroupCfg.Id} and process group {actuatorGroupCfg.ProcessGroup}");
-
-				ActuatorGroup actuatorGroup = new ActuatorGroup(
-					actuatorGroupCfg.Id,
-					actuatorGroupCfg.GroupType,
-					actuatorGroupCfg.ProcessGroup,
-					new List<Actuator>()
-				);
-
 				// Get array of process names from process group for the actuators in the group
 				List<string> processNames = new();
 				foreach (ProcessGroup processGroup in ctrlCfg.ProcessGroups)
@@ -45,6 +36,8 @@ namespace Knobs.Controller
 						processNames.Add(process.ProcessName);
 					}
 				}
+
+				List<Actuator> LActuators = new List<Actuator>();
 
 				// Create actuators
 				foreach (ActuatorConfig actuatorCfg in actuatorGroupCfg.Actuators)
@@ -97,10 +90,24 @@ namespace Knobs.Controller
 					}
 					if (actuator != null)
 					{
-						actuatorGroup.AddActuator(actuator);
+						// actuatorGroup.AddActuator(actuator);
 						MActuators.Add(actuatorCfg.Id, actuator);
+						LActuators.Add(actuator);
 					}
 				}
+
+				Console.WriteLine($"[CONTROLLER] [INFO] Creating actuator group with ID {actuatorGroupCfg.Id} and process group {actuatorGroupCfg.ProcessGroup}");
+
+				// Create actuator group
+				ActuatorGroup actuatorGroup = new ActuatorGroup(
+					actuatorGroupCfg.Id,
+					actuatorGroupCfg.GroupType,
+					actuatorGroupCfg.ProcessGroup,
+					LActuators
+				);
+
+				// Add actuator group to dictionary
+				MActuatorGroups.Add(actuatorGroupCfg.Id, actuatorGroup);
 			}
 
 			Thread updateThread = new Thread(new ThreadStart(BackgroundUpdateLoop))
@@ -112,6 +119,8 @@ namespace Knobs.Controller
 
 		public IEnumerable<ActuatorGroup> GetActuatorGroups()
 		{
+			// Console.WriteLine($"[CONTROLLER] [INFO] Getting actuator groups");
+			// Console.WriteLine(MActuatorGroups.Count);
 			foreach (var actuatorGroup in MActuatorGroups.Values)
 			{
 				yield return actuatorGroup;
